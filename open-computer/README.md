@@ -14,19 +14,19 @@
 >
 > ⭐ Star the repo to stay updated!
 
-What if your AI agent had its own computer?
+### What if your AI agent had its own computer?
 
-Not a sandboxed API. Not a prompt with tool calls. An actual computer — with a desktop, a browser, a terminal, and a full OS — that the agent can see, touch, and control. One that boots in seconds, costs almost nothing to run, and is completely isolated from your machine.
+Not a sandboxed API. Not a prompt with tool calls. Not a Terminal/TUI you cannot really peek into. An actual computer — with a desktop, a browser, a terminal, and a full OS — that the agent can see, touch, and control. One that boots in seconds, costs almost nothing to run, and is completely isolated from your host machine.
 
 That is Open Computer.
 
 Open Computer is a virtual OS built expressly for AI agents to inhabit and operate. It is designed for **humans** to manage, but for **agents** to use. It is not a general-purpose OS — it is a specialized environment, purposefully engineered for AI agents running on real hardware with realistic resource constraints.
 
-At its core, Open Computer is a **human-in-the-loop** operating system. The human sees everything the agent does, in real time, through a live UI. The agent can reach back and ask the human a question via `ask-user` at any moment. This is collaboration with an agent — not just delegation to a tool.
+At its core, Open Computer is a **human-in-the-loop** operating system. The human sees everything the agent does, in real time, through a live UI (that looks like Windows lol). The agent can reach back and ask the human a question via `ask-user` at any moment. This is collaboration with an agent — not just delegation to a tool.
 
 The deeper ambition is a new UX paradigm for AI agents: one that evolves out of the terminal's "black box" into something observable, legible, and genuinely collaborative — a workspace that a non-technical user can sit alongside without feeling lost.
 
-AI agents are most capable in a Linux shell. Bash is where they thrive. But most people don't want to think about Linux at all. Open Computer gives you both: the raw power of a full Linux environment for the agent, and a friendly, approachable UI for the human running it.
+AI agents are most capable in a Linux shell. Bash is where they thrive. But most people don't want to think about Linux at all, let alone a terminal that might as well be a black box to them. Open Computer gives you both: the raw power of a full Linux environment for the agent, and a friendly, approachable UI for the human running it.
 
 ## Purpose
 
@@ -47,7 +47,7 @@ Open Computer resolves this tension. It is a QEMU-based virtual desktop environm
 8. Do all of this without demanding serious compute, memory, or disk space from the host machine.
 
 > Currently, each agent's base overlay is only ~100 MB. The base image is ~2.9 GB. The OS ISO is ~700 MB.
-> For a fully functional, isolated operating system — that's impressively lean.
+> For a fully functional, isolated operating system — that's tiny.
 
 ## How It Works
 
@@ -59,7 +59,7 @@ Any provider that supports the [OpenAI API](https://platform.openai.com/docs/api
 
 The Open Computer OS is built on top of [Debian 13.5.0 (Trixie)](https://www.debian.org/releases/trixie/).
 
-1. **Agent Harness**: The core of Open Computer is a minimal, lightweight client — [Pi](https://pi.dev) running in RPC mode — with custom extensions we've built to make it capable of handling complex tasks inside small context windows. You can always add your own extensions to the harness.
+1. **Agent Harness**: The core of Open Computer is a minimal, lightweight client — [Pi](https://pi.dev) with custom extensions we've built to make it capable of handling complex tasks inside small context windows. You can always add your own extensions to the harness.
 
 2. **Interface Service**: The [interface service](./services/server/index.js) is an HTTP/WebSocket server that lets the agent interact with the computer, the browser, and native apps. It also serves the full live UI when running `open-computer create/up agent --dev`.
 
@@ -85,7 +85,7 @@ Every agent inherits the `base_image` created from the base Debian install, but 
 
 Yes. Open Computer is designed with small, on-device LLMs in mind. The built-in agent harness assumes a minimum of 16K tokens of context and is optimized for that constraint — using regular compression, pruning, and other techniques to handle complex, long-running tasks without blowing the context window.
 
-Tools like [LM Studio](https://lmstudio.ai), [Ollama](https://ollama.com), OMLX, or anything that speaks the OpenAI API can power your agent's computer.
+Tools like [LM Studio](https://lmstudio.ai), [Ollama](https://ollama.com), [OMLX](https://github.com/jundot/omlx), or anything that speaks the OpenAI API can power your agent's computer.
 
 ---
 
