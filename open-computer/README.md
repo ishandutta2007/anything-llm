@@ -5,8 +5,8 @@
 </p>
 
 <p align="center">
-    <b>Open Computer:</b> A fully featured computer built expressly for AI Agents.<br />
-    Isolated, secure, and purpose-built virtual machines you can run entirely on your own hardware.
+    <b>Open Computer:</b> Give your agent its own machine.<br />
+    An isolated, purpose-built virtual computer your agent can actually live in.
 </p>
 
 > [!IMPORTANT]
