@@ -11,6 +11,7 @@
 
 > [!IMPORTANT]
 > This project is a work in progress and is something we do intend to bring to AnythingLLM in the future for custom, secure, and scalable agent use.
+>
 > ⭐ Star the repo to stay updated!
 
 Open Computer is an OS that is being built expressly for AI agents to manipulate to get a task done. The OS is meant for **humans** to manage, but for agents to use. Open Computer is not a general purpose OS, it is a specialized OS for AI agents and is **purposefully** built for use with on-device LLMs.
