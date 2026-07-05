@@ -1,5 +1,10 @@
 <a name="readme-top"></a>
 
+> [!NOTE]
+> We are also working on [Open Computer](https://github.com/Mintplex-Labs/open-computer) which gives an entire computer environment for AI Agents to use.
+> This will bring AnythingLLM's agent capabilities to a new level and a novel UX paradigm for AI Agent use.
+> ⭐ Star the repo to stay updated!
+
 <p align="center">
   <a href="https://anythingllm.com"><img src="https://github.com/Mintplex-Labs/anything-llm/blob/master/images/wordmark.png?raw=true" alt="AnythingLLM logo"></a>
 </p>
@@ -7,10 +12,6 @@
 <div align='center'>
 <a href="https://trendshift.io/repositories/2415" target="_blank"><img src="https://trendshift.io/api/badge/repositories/2415" alt="Mintplex-Labs%2Fanything-llm | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 </div>
-
-> [!NOTE]
-> We are also working on a new project called [Open Computer](https://github.com/Mintplex-Labs/open-computer) which gives an entire computer environment for AI Agents to use.
-> ⭐ Star the repo to stay updated!
 
 <p align="center">
     <b>AnythingLLM:</b> The all-in-one AI app you were looking for.<br />
