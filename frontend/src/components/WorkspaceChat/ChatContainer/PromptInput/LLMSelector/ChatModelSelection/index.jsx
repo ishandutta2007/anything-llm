@@ -26,6 +26,19 @@ export default function ChatModelSelection({
     );
   }
 
+  const downloadedModels = [];
+
+  if (Array.isArray(customModels)) {
+    downloadedModels.push(...customModels.filter((model) => model?.downloaded));
+  } else {
+    // Break out downloaded models from the creator map
+    downloadedModels.push(
+      ...Object.values(customModels)
+        .flat()
+        .filter((model) => model?.downloaded)
+    );
+  }
+
   return (
     <select
       id="workspace-llm-model-select"
@@ -50,6 +63,19 @@ export default function ChatModelSelection({
               </option>
             );
           })}
+        </optgroup>
+      )}
+      {downloadedModels.length > 0 && (
+        <optgroup label="Downloaded Models">
+          {downloadedModels.map((model) => (
+            <option
+              key={model.id}
+              value={model.id}
+              selected={selectedLLMModel === model.id}
+            >
+              {model.name || model.id}
+            </option>
+          ))}
         </optgroup>
       )}
       {Array.isArray(customModels) && customModels.length > 0 && (
