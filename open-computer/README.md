@@ -9,6 +9,8 @@
     An isolated, purpose-built virtual computer your agent can actually live in.
 </p>
 
+<video src="https://github.com/user-attachments/assets/8b7480f3-0891-4571-bc8a-edc3ef9adf0d"></video>
+
 > [!IMPORTANT]
 > This project is a work in progress and is something we intend to bring fully into AnythingLLM — enabling custom, secure, and scalable agent compute for everyone.
 >
@@ -27,6 +29,19 @@ At its core, Open Computer is a **human-in-the-loop** operating system. The huma
 The deeper ambition is a new UX paradigm for AI agents: one that evolves out of the terminal's "black box" into something observable, legible, and genuinely collaborative — a workspace that a non-technical user can sit alongside without feeling lost.
 
 AI agents are most capable in a Linux shell. Bash is where they thrive. But most people don't want to think about Linux at all, let alone a terminal that might as well be a black box to them. Open Computer gives you both: the raw power of a full Linux environment for the agent, and a friendly, approachable UI for the human running it.
+
+## Use Case Demos
+
+<video src="https://github.com/user-attachments/assets/e3adcfbd-ef9c-4b38-9544-ead246373296"></video>
+<p align="center"><em>Open Computer building a data visualization from an uploaded CSV file | LM Studio Gemma 4 13B QAT on MacBook Pro M4 Pro</em></p>
+
+<video src="https://github.com/user-attachments/assets/5bf6d778-1bdb-4f21-a869-bb77566cc791"></video>
+<p align="center"><em>Open Computer building a data visualization from web research | OpenRouter Qwen 3.6 35B A3B</em></p>
+
+<video src="https://github.com/user-attachments/assets/8b7480f3-0891-4571-bc8a-edc3ef9adf0d"></video>
+<p align="center"><em>Open Computer doing deep research and analysis on a topic | OpenRouter Qwen 3.6 35B A3B</em></p>
+
+The above demos are just a few of the many use cases that Open Computer can be used for - all while the human can see and interact with the agent in real time.
 
 ## Purpose
 
