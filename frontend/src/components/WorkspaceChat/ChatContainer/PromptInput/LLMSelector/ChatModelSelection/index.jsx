@@ -66,7 +66,7 @@ export default function ChatModelSelection({
         </optgroup>
       )}
       {downloadedModels.length > 0 && (
-        <optgroup label="Downloaded Models">
+        <optgroup label="Downloaded models">
           {downloadedModels.map((model) => (
             <option
               key={model.id}
