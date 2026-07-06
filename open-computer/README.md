@@ -33,7 +33,7 @@ AI agents are most capable in a Linux shell. Bash is where they thrive. But most
 ## Use Case Demos
 
 <video src="https://github.com/user-attachments/assets/e3adcfbd-ef9c-4b38-9544-ead246373296"></video>
-<p align="center"><em>Open Computer building a data visualization from an uploaded CSV file | LM Studio Gemma 4 13B QAT on MacBook Pro M4 Pro</em></p>
+<p align="center"><em>Open Computer building a data visualization from an uploaded CSV file | LM Studio Gemma 4 13B QAT on MacBook Pro M4 Pro for inference</em></p>
 
 <video src="https://github.com/user-attachments/assets/5bf6d778-1bdb-4f21-a869-bb77566cc791"></video>
 <p align="center"><em>Open Computer building a data visualization from web research | OpenRouter Qwen 3.6 35B A3B</em></p>
@@ -42,6 +42,8 @@ AI agents are most capable in a Linux shell. Bash is where they thrive. But most
 <p align="center"><em>Open Computer doing deep research and analysis on a topic | OpenRouter Qwen 3.6 35B A3B</em></p>
 
 The above demos are just a few of the many use cases that Open Computer can be used for - all while the human can see and interact with the agent in real time.
+
+The inference runs on the host machine, while the UI is showing the direct output of the agent while it works in its own isolated computer. Both the VM and inference are running on the host machine.
 
 ## Purpose
 
