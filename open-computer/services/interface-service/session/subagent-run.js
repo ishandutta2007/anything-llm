@@ -307,12 +307,29 @@ function handleSubagentRpcEvent(line, runId, phase = "child") {
     const sawTaskActivity =
       phase === "synthesis" ? run.synthesisSawTaskActivity : unit?.sawTaskActivity;
 
-    if (!hasTaskOutput && !sawTaskActivity && phase !== "synthesis") {
-      broadcast({
-        type: "agent_log",
-        content: `[subagents] Ignoring early ${phase} response before task activity`,
-      });
-      return;
+    if (!hasTaskOutput && !sawTaskActivity) {
+      if (phase === "synthesis") {
+        // The synthesis pi can deliver its full answer inside the response event
+        // itself rather than streaming it as text deltas.  Only ignore the event
+        // when the response event itself also carries no text — that means pi is
+        // sending a spurious startup handshake before the 1 s-deferred prompt
+        // has even been delivered.
+        const responseText = extractRpcText(event);
+        if (!responseText) {
+          broadcast({
+            type: "agent_log",
+            content: `[subagents] Ignoring early synthesis response before task activity`,
+          });
+          return;
+        }
+        // Non-streaming batch response: capture the text and fall through.
+      } else {
+        broadcast({
+          type: "agent_log",
+          content: `[subagents] Ignoring early ${phase} response before task activity`,
+        });
+        return;
+      }
     }
 
     if (phase === "synthesis") {
