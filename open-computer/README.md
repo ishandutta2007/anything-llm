@@ -18,17 +18,13 @@
 
 ### What if your AI agent had its own computer?
 
-Not a sandboxed API. Not a prompt with tool calls. Not a Terminal/TUI you cannot really peek into. An actual computer — with a desktop, a browser, a terminal, and a full OS — that the agent can see, touch, and control. One that boots in seconds, costs almost nothing to run, and is completely isolated from your host machine.
+Open Computer is a virtual OS built expressly for AI agents to inhabit and operate like they own it - because they do! It is designed for **humans** to manage, but for **agents** to use. It is not a general-purpose OS — it is a specialized environment, purposefully engineered for AI agents running on real hardware with realistic resource constraints.
 
-That is Open Computer.
+At its core, Open Computer is a **human-in-the-loop** operating system. The human sees everything the agent does, in real time, through a live UI (that looks like Windows lol). The agent can reach back and ask the human a question via `ask-user` at any moment. We want something that feels like collaboration, not just recursive tool calls.
 
-Open Computer is a virtual OS built expressly for AI agents to inhabit and operate. It is designed for **humans** to manage, but for **agents** to use. It is not a general-purpose OS — it is a specialized environment, purposefully engineered for AI agents running on real hardware with realistic resource constraints.
+The deeper ambition is a new UX for AI agents: one that evolves out of the terminal's "black box" into something observable, legible, and collaborative — a workspace that a non-technical user can sit alongside without feeling lost but also can meaningfully manipulate whenever the agent is stuck.
 
-At its core, Open Computer is a **human-in-the-loop** operating system. The human sees everything the agent does, in real time, through a live UI (that looks like Windows lol). The agent can reach back and ask the human a question via `ask-user` at any moment. This is collaboration with an agent — not just delegation to a tool.
-
-The deeper ambition is a new UX paradigm for AI agents: one that evolves out of the terminal's "black box" into something observable, legible, and genuinely collaborative — a workspace that a non-technical user can sit alongside without feeling lost.
-
-AI agents are most capable in a Linux shell. Bash is where they thrive. But most people don't want to think about Linux at all, let alone a terminal that might as well be a black box to them. Open Computer gives you both: the raw power of a full Linux environment for the agent, and a friendly, approachable UI for the human running it.
+AI agents are most capable in a Linux shell, but most people truthfully dont feel comfortable with a terminal that might as well be a black box to them. Open Computer gives you both: the raw power of a full Linux environment for the agent, and a friendly, approachable UI for the human running it. All of this without blindly running `--dangerously-skip-permissions` on your host and crossing your fingers.
 
 ## Use Case Demos
 
