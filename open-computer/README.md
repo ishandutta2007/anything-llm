@@ -9,7 +9,7 @@
     An isolated, purpose-built virtual computer your agent can actually live in.
 </p>
 
-<video src="https://github.com/user-attachments/assets/8b7480f3-0891-4571-bc8a-edc3ef9adf0d"></video>
+<video src="https://github.com/user-attachments/assets/79334c87-c5ae-4c2c-8384-d7ef922e4184"></video>
 
 > [!IMPORTANT]
 > This project is a work in progress and is something we intend to bring fully into AnythingLLM — enabling custom, secure, and scalable agent compute for everyone.
@@ -28,13 +28,13 @@ AI agents are most capable in a Linux shell, but most people truthfully dont fee
 
 ## Use Case Demos
 
-<video src="https://github.com/Mintplex-Labs/anything-llm/blob/master/open-computer/assets/app-builder-demo.mp4?raw=true"></video>
+<video src="https://github.com/user-attachments/assets/cd5363d9-1daf-4867-8d97-d7fd903ad1b5"></video>
 <p align="center"><em>Open Computer building a data visualization from an uploaded CSV file | LM Studio Gemma 4 13B QAT on MacBook Pro M4 Pro for inference</em></p>
 
-<video src="https://github.com/Mintplex-Labs/anything-llm/blob/master/open-computer/assets/data-viz-demo.mp4?raw=true"></video>
+<video src="https://github.com/user-attachments/assets/cf8444d8-15f9-489d-8800-fb25a1769804"></video>
 <p align="center"><em>Open Computer building a data visualization from web research | OpenRouter Qwen 3.6 35B A3B</em></p>
 
-<video src="https://github.com/Mintplex-Labs/anything-llm/blob/master/open-computer/assets/research-demo.mp4?raw=true"></video>
+<video src="https://github.com/user-attachments/assets/79334c87-c5ae-4c2c-8384-d7ef922e4184"></video>
 <p align="center"><em>Open Computer doing deep research and analysis on a topic | LM Studio Gemma 4 13B QAT on MacBook Pro M4 Pro</em></p>
 
 The above demos are just a few of the many use cases that Open Computer can be used for - all while the human can see and interact with the agent in real time.
