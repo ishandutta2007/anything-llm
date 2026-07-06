@@ -39,7 +39,7 @@ AI agents are most capable in a Linux shell. Bash is where they thrive. But most
 <p align="center"><em>Open Computer building a data visualization from web research | OpenRouter Qwen 3.6 35B A3B</em></p>
 
 <video src="https://github.com/user-attachments/assets/8b7480f3-0891-4571-bc8a-edc3ef9adf0d"></video>
-<p align="center"><em>Open Computer doing deep research and analysis on a topic | OpenRouter Qwen 3.6 35B A3B</em></p>
+<p align="center"><em>Open Computer doing deep research and analysis on a topic | LM Studio Gemma 4 13B QAT on MacBook Pro M4 Pro</em></p>
 
 The above demos are just a few of the many use cases that Open Computer can be used for - all while the human can see and interact with the agent in real time.
 
