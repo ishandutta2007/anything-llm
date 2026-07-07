@@ -1,24 +1,4 @@
 /**
- * Convert a cron expression whose hour/minute were specified in a user's local
- * timezone into an equivalent UTC cron expression for storage.
- *
- * The scheduler runs in UTC (later.js is configured with `later.date.UTC()`),
- * so all stored cron expressions must use UTC hours. When the agent creates a
- * job it writes a cron in the user's local time (e.g. "0 9 * * 1-5" for 9am
- * weekdays); this module shifts the hour/minute fields to UTC before the job
- * is saved, using the user's IANA timezone from the per-request locale cache.
- *
- * Only patterns where both the minute AND hour fields are specific integers are
- * converted. Patterns like `* * * * *`, `*\/5 * * * *`, or `0 *\/2 * * *`
- * are already timezone-agnostic and returned unchanged.
- *
- * Known limitation (matches frontend builder behaviour):
- *   DST – the offset is computed for "now", so a schedule may drift by one
- *   hour across a DST boundary. This is acceptable and consistent with the
- *   manual Scheduled Jobs UI.
- */
-
-/**
  * UTC offset in minutes for a given IANA timezone at a specific instant.
  * Throws RangeError if `timeZone` is not a valid IANA identifier.
  * @param {string} timeZone
@@ -87,4 +67,91 @@ function convertCronLocalToUtc(cron, timeZone) {
   return `${utc.minute} ${utc.hour} ${dom} ${month} ${dow}`;
 }
 
-module.exports = { convertCronLocalToUtc };
+/**
+ * Flatten the Scheduled Jobs tool catalog into a single Set of valid tool IDs.
+ * @param {Awaited<ReturnType<import('../../../../../models/scheduledJob').ScheduledJob.availableTools>>} catalog
+ * @returns {Set<string>}
+ */
+function catalogIdSet(catalog) {
+  const ids = new Set();
+  for (const category of catalog) {
+    for (const item of category.items || []) ids.add(item.id);
+  }
+  return ids;
+}
+
+/**
+ * Filter the catalog down to tools that are configured and ready to use,
+ * dropping anything still requiring setup (e.g. Gmail/Calendar/Outlook with no
+ * credentials, SQL with no connection). This mirrors the manual Scheduled Jobs
+ * UI, which disables selection of `requiresSetup` tools. A tool is treated as
+ * not-ready if either the item or its category is flagged `requiresSetup`.
+ */
+function readyToolsCatalog(catalog) {
+  return catalog
+    .map((category) => ({
+      ...category,
+      items: (category.items || []).filter(
+        (item) => !item.requiresSetup && !category.requiresSetup
+      ),
+    }))
+    .filter((category) => category.items.length > 0);
+}
+
+/**
+ * Render the tool catalog as a readable, grouped text block for the agent.
+ * @param {ReturnType<typeof readyToolsCatalog>} catalog
+ * @returns {string}
+ */
+function renderCatalog(catalog) {
+  if (!catalog?.length) return "No tools are available for scheduled jobs.";
+  return catalog
+    .map((category) => {
+      const lines = (category.items || []).map((item) => {
+        const setup = item.requiresSetup ? " [requires setup]" : "";
+        const desc = item.description ? ` - ${item.description}` : "";
+        return `  - ${item.id}${setup}${desc}`;
+      });
+      return `${category.name}:\n${lines.join("\n")}`;
+    })
+    .join("\n\n");
+}
+
+/**
+ * Build an actionable correction message when the agent passes tool IDs that
+ * can't be used. Separates tools that exist but still need setup from IDs that
+ * don't exist at all, then lists the ready-to-use catalog to choose from.
+ * @param {string[]} rejected
+ * @param {ReturnType<typeof readyToolsCatalog>} fullCatalog
+ * @param {ReturnType<typeof readyToolsCatalog>} readyCatalog
+ * @returns {string}
+ */
+function rejectedToolsMessage(rejected, fullCatalog, readyCatalog) {
+  const allIds = catalogIdSet(fullCatalog);
+  const needsSetup = rejected.filter((id) => allIds.has(id));
+  const unknown = rejected.filter((id) => !allIds.has(id));
+
+  const lines = [];
+  if (needsSetup.length > 0)
+    lines.push(
+      `These tools exist but are not configured yet, so they can't be added to a job: ${needsSetup.join(
+        ", "
+      )}. The user must set them up first in Settings > Agent Skills.`
+    );
+  if (unknown.length > 0)
+    lines.push(`These tool IDs are not valid: ${unknown.join(", ")}.`);
+
+  return `${lines.join(
+    "\n"
+  )}\n\nChoose only from these ready-to-use tools:\n\n${renderCatalog(
+    readyCatalog
+  )}`;
+}
+
+module.exports = {
+  convertCronLocalToUtc,
+  catalogIdSet,
+  readyToolsCatalog,
+  renderCatalog,
+  rejectedToolsMessage,
+};

@@ -187,11 +187,6 @@ export default {
     telegram: () => {
       return `/settings/external-connections/telegram`;
     },
-    /**
-     * @param {object} options - The options for the scheduled jobs.
-     * @param {number} options.editJobId - The ID of the job to edit.
-     * @returns {string} The path to the scheduled jobs.
-     */
     scheduledJobs: () => {
       return `/settings/scheduled-jobs`;
     },

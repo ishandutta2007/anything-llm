@@ -5,19 +5,6 @@ const { decodeJWT } = require("../http");
 const { UserMetaCache } = require("../userLocale");
 const EncryptionMgr = new EncryptionManager();
 
-/**
- * Read X-Timezone and X-Language from the request headers and store them in
- * the per-user locale cache so any server-side code (e.g. agent tools) can
- * access the browser's locale without requiring it in every request body.
- * @param {import('express').Request} request
- * @param {number|null} userId - null for single-user mode (stored under 'primary')
- */
-function updateLocaleFromRequest(request, userId = null) {
-  const timezone = request.header("X-Timezone");
-  const lang = request.header("X-Language");
-  if (timezone || lang) UserMetaCache.set(userId, { timezone, lang });
-}
-
 async function validatedRequest(request, response, next) {
   const multiUserMode = await SystemSettings.isMultiUserMode();
   response.locals.multiUserMode = multiUserMode;
@@ -31,7 +18,7 @@ async function validatedRequest(request, response, next) {
     !process.env.AUTH_TOKEN ||
     !process.env.JWT_SECRET
   ) {
-    updateLocaleFromRequest(request);
+    UserMetaCache.setFromRequest(request);
     next();
     return;
   }
@@ -80,7 +67,7 @@ async function validatedRequest(request, response, next) {
     return;
   }
 
-  updateLocaleFromRequest(request);
+  UserMetaCache.setFromRequest(request);
   next();
 }
 
@@ -119,7 +106,7 @@ async function validateMultiUserRequest(request, response, next) {
   }
 
   response.locals.user = user;
-  updateLocaleFromRequest(request, user.id);
+  UserMetaCache.setFromRequest(request, user.id);
   next();
 }
 

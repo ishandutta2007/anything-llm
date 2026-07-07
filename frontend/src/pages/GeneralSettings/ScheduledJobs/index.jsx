@@ -13,6 +13,7 @@ import showToast from "@/utils/toast";
 import JobRow from "./components/JobRow";
 import { Bell } from "@phosphor-icons/react";
 import { Tooltip } from "react-tooltip";
+
 export default function ScheduledJobsPage() {
   const { t } = useTranslation();
   useWebPushNotifications(false);

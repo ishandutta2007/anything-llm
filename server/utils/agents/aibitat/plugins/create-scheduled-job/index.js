@@ -1,90 +1,13 @@
 const { ScheduledJob } = require("../../../../../models/scheduledJob");
 const { BackgroundService } = require("../../../../BackgroundWorkers");
 const { UserMetaCache } = require("../../../../userLocale");
-const { convertCronLocalToUtc } = require("./cronUtils");
-
-/**
- * Flatten the Scheduled Jobs tool catalog into a single Set of valid tool IDs.
- * @param {Awaited<ReturnType<typeof ScheduledJob.availableTools>>} catalog
- * @returns {Set<string>}
- */
-function catalogIdSet(catalog) {
-  const ids = new Set();
-  for (const category of catalog) {
-    for (const item of category.items || []) ids.add(item.id);
-  }
-  return ids;
-}
-
-/**
- * Filter the catalog down to tools that are configured and ready to use,
- * dropping anything still requiring setup (e.g. Gmail/Calendar/Outlook with no
- * credentials, SQL with no connection). This mirrors the manual Scheduled Jobs
- * UI, which disables selection of `requiresSetup` tools. A tool is treated as
- * not-ready if either the item or its category is flagged `requiresSetup`.
- * @param {Awaited<ReturnType<typeof ScheduledJob.availableTools>>} catalog
- * @returns {Awaited<ReturnType<typeof ScheduledJob.availableTools>>}
- */
-function readyToolsCatalog(catalog) {
-  return catalog
-    .map((category) => ({
-      ...category,
-      items: (category.items || []).filter(
-        (item) => !item.requiresSetup && !category.requiresSetup
-      ),
-    }))
-    .filter((category) => category.items.length > 0);
-}
-
-/**
- * Render the tool catalog as a readable, grouped text block for the agent.
- * @param {Awaited<ReturnType<typeof ScheduledJob.availableTools>>} catalog
- * @returns {string}
- */
-function renderCatalog(catalog) {
-  if (!catalog?.length) return "No tools are available for scheduled jobs.";
-  return catalog
-    .map((category) => {
-      const lines = (category.items || []).map((item) => {
-        const setup = item.requiresSetup ? " [requires setup]" : "";
-        const desc = item.description ? ` - ${item.description}` : "";
-        return `  - ${item.id}${setup}${desc}`;
-      });
-      return `${category.name}:\n${lines.join("\n")}`;
-    })
-    .join("\n\n");
-}
-
-/**
- * Build an actionable correction message when the agent passes tool IDs that
- * can't be used. Separates tools that exist but still need setup from IDs that
- * don't exist at all, then lists the ready-to-use catalog to choose from.
- * @param {string[]} rejected - The tool IDs that were not in the ready catalog.
- * @param {Awaited<ReturnType<typeof ScheduledJob.availableTools>>} fullCatalog
- * @param {Awaited<ReturnType<typeof ScheduledJob.availableTools>>} readyCatalog
- * @returns {string}
- */
-function rejectedToolsMessage(rejected, fullCatalog, readyCatalog) {
-  const allIds = catalogIdSet(fullCatalog);
-  const needsSetup = rejected.filter((id) => allIds.has(id));
-  const unknown = rejected.filter((id) => !allIds.has(id));
-
-  const lines = [];
-  if (needsSetup.length > 0)
-    lines.push(
-      `These tools exist but are not configured yet, so they can't be added to a job: ${needsSetup.join(
-        ", "
-      )}. The user must set them up first in Settings > Agent Skills.`
-    );
-  if (unknown.length > 0)
-    lines.push(`These tool IDs are not valid: ${unknown.join(", ")}.`);
-
-  return `${lines.join(
-    "\n"
-  )}\n\nChoose only from these ready-to-use tools:\n\n${renderCatalog(
-    readyCatalog
-  )}`;
-}
+const {
+  convertCronLocalToUtc,
+  catalogIdSet,
+  readyToolsCatalog,
+  renderCatalog,
+  rejectedToolsMessage,
+} = require("./cronUtils");
 
 const createScheduledJob = {
   name: "create-scheduled-job",

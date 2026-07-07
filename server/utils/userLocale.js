@@ -79,6 +79,19 @@ class _UserMetaCache {
       }
     );
   }
+
+  /**
+   * Read X-Timezone and X-Language from an Express request and store them.
+   * Intended to be called from the validatedRequest middleware after auth.
+   *
+   * @param {import('express').Request} request
+   * @param {number|null} userId - null for single-user mode (stored under 'primary')
+   */
+  setFromRequest(request, userId = null) {
+    const timezone = request.header("X-Timezone");
+    const lang = request.header("X-Language");
+    if (timezone || lang) this.set(userId, { timezone, lang });
+  }
 }
 
 const UserMetaCache = new _UserMetaCache();
