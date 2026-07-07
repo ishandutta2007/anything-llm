@@ -148,6 +148,24 @@ const createScheduledJob = {
               return `Cannot create the job: the maximum of ${activation.limit} active scheduled jobs has been reached. Ask the user to disable an existing job first.`;
             }
 
+            if (this.super.requestToolApproval) {
+              const approval = await this.super.requestToolApproval({
+                skillName: this.name,
+                payload: {
+                  name: args.name.trim(),
+                  schedule: localCron,
+                  tools: tools ?? [],
+                },
+                description: `Create scheduled job "${args.name.trim()}" (${localCron})`,
+              });
+              if (!approval.approved) {
+                this.super.introspect(
+                  `${this.caller}: User rejected the ${this.name} request.`
+                );
+                return approval.message;
+              }
+            }
+
             const { job, error } = await ScheduledJob.create({
               name: args.name.trim(),
               prompt: args.prompt.trim(),
