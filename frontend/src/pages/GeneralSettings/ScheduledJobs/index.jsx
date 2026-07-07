@@ -13,8 +13,6 @@ import showToast from "@/utils/toast";
 import JobRow from "./components/JobRow";
 import { Bell } from "@phosphor-icons/react";
 import { Tooltip } from "react-tooltip";
-import { useSearchParams } from "react-router-dom";
-
 export default function ScheduledJobsPage() {
   const { t } = useTranslation();
   useWebPushNotifications(false);
@@ -22,7 +20,6 @@ export default function ScheduledJobsPage() {
   const [loading, setLoading] = useState(true);
   const [jobs, setJobs] = useState([]);
   const [editingJob, setEditingJob] = useState(null);
-  const [searchParams, setSearchParams] = useSearchParams();
 
   const fetchJobs = async () => {
     const { jobs: foundJobs } = await ScheduledJobs.list();
@@ -36,23 +33,6 @@ export default function ScheduledJobsPage() {
 
   // Poll every 5s while tab is visible so status badges and run timestamps stay in sync.
   usePolling(fetchJobs, 5000);
-
-  // Open the edit modal when arriving via ?action=edit-job&jobId=... (from the
-  // "job created" chat card), once the job's data has loaded.
-  useEffect(() => {
-    if (loading) return;
-    if (searchParams.get("action") !== "edit-job") return;
-
-    const jobId = Number(searchParams.get("jobId"));
-    const job = jobs.find((j) => j.id === jobId);
-    if (!job) return; // jobs not loaded yet; retry after the next fetch
-
-    setEditingJob(job);
-    openModal();
-
-    // Clear the params so polling/refresh don't reopen the modal.
-    setSearchParams({}, { replace: true });
-  }, [jobs, loading, searchParams, setSearchParams, openModal]);
 
   const handleDelete = async (id) => {
     if (!window.confirm(t("scheduledJobs.confirmDelete"))) return;

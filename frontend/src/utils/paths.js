@@ -187,9 +187,13 @@ export default {
     telegram: () => {
       return `/settings/external-connections/telegram`;
     },
-    scheduledJobs: (editJobId = null) => {
-      const base = `/settings/scheduled-jobs`;
-      return editJobId ? `${base}?action=edit-job&jobId=${editJobId}` : base;
+    /**
+     * @param {object} options - The options for the scheduled jobs.
+     * @param {number} options.editJobId - The ID of the job to edit.
+     * @returns {string} The path to the scheduled jobs.
+     */
+    scheduledJobs: () => {
+      return `/settings/scheduled-jobs`;
     },
     scheduledJobRuns: (jobId) => {
       return `/settings/scheduled-jobs/${jobId}/runs`;

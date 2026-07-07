@@ -5,7 +5,7 @@ import paths from "@/utils/paths";
 
 /**
  * Card rendered in agent chat when a scheduled job is created via the
- * create-scheduled-job tool. Clicking it opens the edit modal for the job.
+ * create-scheduled-job tool. Clicking it opens the run history page for the job.
  * @param {{content: {jobId: number|string, jobName?: string, schedule?: string, nextRun?: string}}} props
  */
 function ScheduledJobCreatedCard({ props }) {
@@ -14,7 +14,7 @@ function ScheduledJobCreatedCard({ props }) {
 
   const goToJob = () => {
     if (!jobId) return;
-    navigate(paths.settings.scheduledJobs(jobId));
+    navigate(paths.settings.scheduledJobRuns(jobId));
   };
 
   return (

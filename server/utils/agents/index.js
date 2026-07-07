@@ -12,7 +12,7 @@ const { USER_AGENT, WORKSPACE_AGENT } = require("./defaults");
 const ImportedPlugin = require("./imported");
 const { AgentFlows } = require("../agentFlows");
 const MCPCompatibilityLayer = require("../MCP");
-const { getAndClearInvocationContext } = require("../chats/agents");
+const { getAndClearInvocationAttachments } = require("../chats/agents");
 const { DocumentManager } = require("../DocumentManager");
 
 class AgentHandler {
@@ -24,7 +24,6 @@ class AgentHandler {
   provider = null;
   model = null;
   attachments = [];
-  timezone = null;
 
   constructor({ uuid }) {
     this.#invocationUUID = uuid;
@@ -704,13 +703,8 @@ class AgentHandler {
     await this.#validInvocation();
     await this.#providerSetupAndCheck();
 
-    // Retrieve cached per-invocation context (attachments, timezone) that the
-    // browser sent over the HTTP /stream-chat request before this websocket.
-    const { attachments, timezone } = getAndClearInvocationContext(
-      this.#invocationUUID
-    );
-    this.attachments = attachments;
-    this.timezone = timezone;
+    // Retrieve cached attachments (images, etc.) from the HTTP request
+    this.attachments = getAndClearInvocationAttachments(this.#invocationUUID);
 
     return this;
   }
@@ -795,7 +789,6 @@ class AgentHandler {
         invocation: this.invocation,
         log: this.log,
         routingMetadata: this.routingMetadata || null,
-        timezone: this.timezone || "UTC",
       },
     });
 

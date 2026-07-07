@@ -64,13 +64,12 @@ export default function useSkillSections({
   return useMemo(() => {
     const sectionList = [];
 
-    // Agent Skills (default + configurable) — skip single-user-only skills in MUM.
+    // Agent Skills (default + configurable)
     const skillItems = [];
-    for (const [key, { title, mode }] of Object.entries({
+    for (const [key, { title }] of Object.entries({
       ...defaultSkills,
       ...configurableSkills,
     })) {
-      if (isMultiUser && mode?.includes("singleUserOnly")) continue;
       skillItems.push(
         buildSkillItem({
           key,

@@ -1,19 +1,5 @@
 const { ScheduledJob } = require("../../../../models/scheduledJob");
 const { BackgroundService } = require("../../../BackgroundWorkers");
-const {
-  buildUtcCronFromSchedule,
-  normalizeWeekdays,
-} = require("../../../scheduling/cronFromLocal");
-
-const WEEKDAY_NAMES = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
 
 /**
  * Flatten the Scheduled Jobs tool catalog into a single Set of valid tool IDs.
@@ -98,38 +84,6 @@ function rejectedToolsMessage(rejected, fullCatalog, readyCatalog) {
   )}`;
 }
 
-/**
- * Build a human-readable description of the schedule for the success message.
- * @param {object} args - The structured schedule args.
- * @param {string} timezone - The resolved IANA timezone.
- * @returns {string}
- */
-function describeSchedule(args, timezone) {
-  const minute = Number.isInteger(args.minute) ? args.minute : 0;
-  const hhmm = (h, m) =>
-    `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-  switch (args.frequency) {
-    case "minute": {
-      const n = args.minuteInterval || 1;
-      return n === 1 ? "every minute" : `every ${n} minutes`;
-    }
-    case "hour":
-      return `every hour at :${String(minute).padStart(2, "0")}`;
-    case "day":
-      return `daily at ${hhmm(args.hour, minute)} ${timezone}`;
-    case "week": {
-      const days = normalizeWeekdays(args.weekdays)
-        .map((d) => WEEKDAY_NAMES[d])
-        .join(", ");
-      return `weekly on ${days} at ${hhmm(args.hour, minute)} ${timezone}`;
-    }
-    case "month":
-      return `monthly on day ${args.dayOfMonth || 1} at ${hhmm(args.hour, minute)} ${timezone}`;
-    default:
-      return args.frequency;
-  }
-}
-
 const createScheduledJob = {
   name: "create-scheduled-job",
   startupConfig: {
@@ -144,22 +98,20 @@ const createScheduledJob = {
           name: this.name,
           description:
             "Create a recurring Scheduled Job that automatically runs an agent prompt on a schedule (e.g. 'every weekday at 9am summarize my inbox and email me'). " +
-            "Provide a STRUCTURED schedule (frequency + local time) - do NOT write cron expressions and do NOT convert times to UTC yourself; the server handles timezone conversion. " +
-            "Hours are interpreted in the user's local timezone, which is detected automatically. Only pass `timezone` if the user explicitly asks for a different timezone (e.g. 'in London time'). " +
+            "Provide `schedule` as a standard 5-field UTC cron expression (minute hour dom month dow). " +
+            "If the user gives a local time, ask them for their UTC offset or timezone so you can convert correctly before writing the cron. " +
             "IMPORTANT - the job runs later on its own with NO chat context and can ONLY use the tools you list in `tools`. Think about what the prompt needs to actually accomplish the task (e.g. searching the web, scraping a page, sending email) and pass those tool IDs. " +
             "If you are unsure which tool IDs exist, FIRST call this tool with `listTools: true` to get the catalog, then call it again with your chosen `tools`. " +
             "If you omit `tools`, the job will run with NO tools (only the base language model) - so always pass the tools the task needs.",
           examples: [
             {
-              prompt: "Every weekday at 9am summarize my inbox and email me",
+              prompt:
+                "Every weekday at 9am UTC summarize my inbox and email me",
               call: JSON.stringify({
                 name: "Weekday inbox summary",
                 prompt:
                   "Summarize my unread inbox emails and send me a summary email.",
-                frequency: "week",
-                hour: 9,
-                minute: 0,
-                weekdays: [1, 2, 3, 4, 5],
+                schedule: "0 9 * * 1-5",
                 tools: [
                   "gmail-agent#gmail-get-inbox",
                   "gmail-agent#gmail-send-email",
@@ -190,50 +142,10 @@ const createScheduledJob = {
                 description:
                   "The instruction the agent will execute each time the job runs. Be specific and self-contained - the job runs later with no chat context.",
               },
-              frequency: {
-                type: "string",
-                enum: ["minute", "hour", "day", "week", "month"],
-                description:
-                  "How often the job runs: 'minute' (every N minutes), 'hour' (at minute M of every hour), 'day', 'week' (on specific weekdays), or 'month' (on a day of month).",
-              },
-              minuteInterval: {
-                type: "integer",
-                minimum: 1,
-                maximum: 59,
-                description:
-                  "Only for frequency='minute'. Run every N minutes.",
-              },
-              minute: {
-                type: "integer",
-                minimum: 0,
-                maximum: 59,
-                description:
-                  "Minute of the hour (0-59). Used for frequency hour/day/week/month. Defaults to 0.",
-              },
-              hour: {
-                type: "integer",
-                minimum: 0,
-                maximum: 23,
-                description:
-                  "Hour of the day in the user's LOCAL time (0-23). Required for frequency day/week/month.",
-              },
-              weekdays: {
-                type: "array",
-                items: { type: "integer", minimum: 0, maximum: 6 },
-                description:
-                  "Only for frequency='week'. Days to run on, where 0=Sunday, 1=Monday, ... 6=Saturday.",
-              },
-              dayOfMonth: {
-                type: "integer",
-                minimum: 1,
-                maximum: 31,
-                description:
-                  "Only for frequency='month'. Day of the month (1-31).",
-              },
-              timezone: {
+              schedule: {
                 type: "string",
                 description:
-                  "Optional IANA timezone override (e.g. 'America/New_York'). Only set this if the user explicitly names a timezone; otherwise the user's detected timezone is used.",
+                  "A standard 5-field cron expression in UTC (minute hour dom month dow). Examples: '0 9 * * 1-5' = weekdays at 09:00 UTC, '30 14 * * *' = daily at 14:30 UTC, '0 */2 * * *' = every 2 hours.",
               },
               tools: {
                 type: "array",
@@ -276,33 +188,12 @@ const createScheduledJob = {
             // Required fields.
             if (!args.name?.trim()) return "A job `name` is required.";
             if (!args.prompt?.trim()) return "A job `prompt` is required.";
-            if (!args.frequency) return "A `frequency` is required.";
+            if (!args.schedule?.trim())
+              return "A `schedule` cron expression is required.";
 
-            // Hour-bearing frequencies need an hour.
-            if (
-              ["day", "week", "month"].includes(args.frequency) &&
-              !Number.isInteger(args.hour)
-            ) {
-              return `For a '${args.frequency}' schedule you must provide an \`hour\` (0-23) in the user's local time.`;
-            }
-
-            // Resolve the timezone: explicit override > detected (handlerProps) > UTC.
-            const timezone =
-              args.timezone || this.super.handlerProps.timezone || "UTC";
-
-            // Build the UTC cron. Invalid IANA timezones throw a RangeError here.
-            let cron;
-            try {
-              cron = buildUtcCronFromSchedule({ ...args, timezone });
-            } catch (error) {
-              if (error instanceof RangeError) {
-                return `'${timezone}' is not a valid IANA timezone. Ask the user for their timezone (e.g. 'America/New_York') or omit it to use their detected timezone.`;
-              }
-              throw error;
-            }
-
+            const cron = args.schedule.trim();
             if (!ScheduledJob.isValidCron(cron)) {
-              return `The schedule produced an invalid cron expression (${cron}). Please retry with a clearer schedule.`;
+              return `'${cron}' is not a valid 5-field cron expression. Please provide a valid UTC cron string (e.g. '0 9 * * 1-5' for weekdays at 09:00 UTC).`;
             }
 
             // Resolve the tools the job may use. A scheduled job can ONLY use
@@ -343,7 +234,6 @@ const createScheduledJob = {
               `${this.caller}: Created scheduled job "${job.name}" (cron ${cron}).`
             );
 
-            const human = describeSchedule(args, timezone);
             const nextRun = job.nextRunAt
               ? new Date(job.nextRunAt).toISOString()
               : "unknown";
@@ -355,7 +245,7 @@ const createScheduledJob = {
             const cardPayload = {
               jobId: job.id,
               jobName: job.name,
-              schedule: human,
+              schedule: cron,
               nextRun,
             };
             this.super.socket?.send?.("scheduledJobCreated", cardPayload);
@@ -370,8 +260,8 @@ const createScheduledJob = {
               ? `It may use these tools: ${tools.join(", ")}.`
               : "No tools were selected, so it runs with no tools (base language model only).";
             return (
-              `Created scheduled job "${job.name}" (#${job.id}). It runs ${human} ` +
-              `(cron \`${cron}\` in UTC). ${toolNote} Next run: ${nextRun}. ` +
+              `Created scheduled job "${job.name}" (#${job.id}). ` +
+              `Schedule: \`${cron}\` (UTC). ${toolNote} Next run: ${nextRun}. ` +
               `The user can manage it from Settings > Scheduled Jobs.`
             );
           },
