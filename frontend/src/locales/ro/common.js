@@ -62,7 +62,7 @@ const TRANSLATIONS = {
     no: "Nu",
     search: "Caută",
     username_requirements:
-      "Numele de utilizator trebuie să aibă între 2 și 32 de caractere, să înceapă cu o literă mică și să conțină doar litere mici, cifre, liniuțe de subliniere, cratime și puncte.",
+      "Numele de utilizator trebuie să aibă între 2 și 64 de caractere, să înceapă cu o literă mică și să conțină doar litere mici, cifre, liniuțe de subliniere, cratime și puncte.",
     on: "În",
     none: "Niciunul",
     stopped: "Oprit",
@@ -1274,7 +1274,6 @@ const TRANSLATIONS = {
       },
       "intelligent-skill-selection": {
         title: "Selecție inteligentă a abilităților",
-        "beta-badge": "Beta",
         description:
           "Permite utilizarea nelimitată a instrumentelor și reduce utilizarea token-urilor cu până la 80% pentru fiecare interogare – AnythingLLM selectează automat abilitățile potrivite pentru fiecare solicitare.",
         "max-tools": {

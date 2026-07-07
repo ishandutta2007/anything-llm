@@ -62,7 +62,7 @@ const TRANSLATIONS = {
     no: "Nein",
     search: "Suchen",
     username_requirements:
-      "Der Benutzername muss 2-32 Zeichen lang sein, mit einem Kleinbuchstaben beginnen und darf nur Kleinbuchstaben, Zahlen, Unterstriche, Bindestriche und Punkte enthalten.",
+      "Der Benutzername muss 2-64 Zeichen lang sein, mit einem Kleinbuchstaben beginnen und darf nur Kleinbuchstaben, Zahlen, Unterstriche, Bindestriche und Punkte enthalten.",
     on: "Über",
     none: "Keine",
     stopped: "Gestoppt",
@@ -765,7 +765,6 @@ const TRANSLATIONS = {
       },
       "intelligent-skill-selection": {
         title: "Intelligente Auswahl von Fähigkeiten",
-        "beta-badge": "Beta-Version",
         description:
           "Ermöglichen Sie die uneingeschränkte Nutzung von Werkzeugen und reduzieren Sie die Token-Nutzung pro Anfrage um bis zu 80 % – AnythingLLM wählt automatisch die passenden Fähigkeiten für jede Anfrage aus.",
         "max-tools": {

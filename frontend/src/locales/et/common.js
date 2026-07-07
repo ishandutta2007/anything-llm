@@ -61,7 +61,7 @@ const TRANSLATIONS = {
     no: "Ei",
     search: "otsing",
     username_requirements:
-      "Kasutajanimi peab olema 2–32 tähemärki, algama väiketähega ning sisaldama ainult väiketähti, numbreid, alakriipse, sidekriipse ja punkte.",
+      "Kasutajanimi peab olema 2–64 tähemärki, algama väiketähega ning sisaldama ainult väiketähti, numbreid, alakriipse, sidekriipse ja punkte.",
     on: "On",
     none: "Ei",
     stopped: "Peatas",
@@ -735,7 +735,6 @@ const TRANSLATIONS = {
       },
       "intelligent-skill-selection": {
         title: "Nutikad oskuste valiku meetodid",
-        "beta-badge": "Beeta",
         description:
           "Lubage piiramatu hulga tööriistade kasutamist ning vähendage küsimuse kohta kasutatavate tokenide arv kuni 80% – AnythingLLM valib automaatselt iga küsimuse jaoks sobivad oskused.",
         "max-tools": {

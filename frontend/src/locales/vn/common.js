@@ -62,7 +62,7 @@ const TRANSLATIONS = {
     no: "Không",
     search: "Tìm kiếm",
     username_requirements:
-      "Tên người dùng phải có 2-32 ký tự, bắt đầu bằng chữ cái thường và chỉ chứa chữ cái thường, số, dấu gạch dưới, dấu gạch ngang và dấu chấm.",
+      "Tên người dùng phải có 2-64 ký tự, bắt đầu bằng chữ cái thường và chỉ chứa chữ cái thường, số, dấu gạch dưới, dấu gạch ngang và dấu chấm.",
     on: "Về",
     none: "Không",
     stopped: "Dừng",
@@ -740,7 +740,6 @@ const TRANSLATIONS = {
       },
       "intelligent-skill-selection": {
         title: "Lựa chọn kỹ năng thông minh",
-        "beta-badge": "Phiên bản thử nghiệm",
         description:
           "Cho phép sử dụng không giới hạn các công cụ và giảm mức sử dụng token lên đến 80% cho mỗi truy vấn – AnythingLLM tự động chọn các kỹ năng phù hợp nhất cho mỗi yêu cầu.",
         "max-tools": {

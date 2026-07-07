@@ -493,6 +493,10 @@ const SystemSettings = {
       GenericOpenAiEmbeddingMaxConcurrentChunks:
         process.env.GENERIC_OPEN_AI_EMBEDDING_MAX_CONCURRENT_CHUNKS || 500,
       GeminiEmbeddingApiKey: !!process.env.GEMINI_EMBEDDING_API_KEY,
+      GenericOpenAiEmbeddingPassagePrefix:
+        process.env.GENERIC_OPEN_AI_EMBEDDING_PASSAGE_PREFIX || "",
+      GenericOpenAiEmbeddingQueryPrefix:
+        process.env.GENERIC_OPEN_AI_EMBEDDING_QUERY_PREFIX || "",
 
       // --------------------------------------------------------
       // VectorDB Provider Selection Settings & Configs
@@ -516,6 +520,9 @@ const SystemSettings = {
       WhisperProvider: process.env.WHISPER_PROVIDER || "local",
       WhisperModelPref:
         process.env.WHISPER_MODEL_PREF || "Xenova/whisper-small",
+      WhisperGenericOpenAiBaseUrl: process.env.WHISPER_GENERIC_OPEN_AI_BASE_URL,
+      WhisperGenericOpenAiApiKey: !!process.env.WHISPER_GENERIC_OPEN_AI_API_KEY,
+      WhisperGenericOpenAiModel: process.env.WHISPER_GENERIC_OPEN_AI_MODEL,
 
       // --------------------------------------------------------
       // TTS/STT  Selection Settings & Configs
@@ -850,7 +857,7 @@ const SystemSettings = {
     return {
       // OpenAI Keys
       OpenAiKey: !!process.env.OPEN_AI_KEY,
-      OpenAiModelPref: process.env.OPEN_MODEL_PREF || "gpt-4o",
+      OpenAiModelPref: process.env.OPEN_MODEL_PREF || "gpt-4.1-nano",
 
       // Azure + OpenAI Keys
       AzureOpenAiEndpoint: process.env.AZURE_OPENAI_ENDPOINT,
@@ -1189,6 +1196,7 @@ function mergeConnections(existingConnections = [], updates = []) {
       }
 
       default: {
+        if (!action) continue;
         throw new Error("SQL connection update contains an invalid action.");
       }
     }

@@ -61,7 +61,7 @@ const TRANSLATIONS = {
     no: "Nē",
     search: "Meklēšana",
     username_requirements:
-      "Lietotājvārdam jābūt 2–32 rakstzīmju garam, jāsākas ar mazo burtu un jāsatur tikai mazie burti, cipari, apakšsvītras, domuzīmes un punkti.",
+      "Lietotājvārdam jābūt 2–64 rakstzīmju garam, jāsākas ar mazo burtu un jāsatur tikai mazie burti, cipari, apakšsvītras, domuzīmes un punkti.",
     on: "Par",
     none: "Nav",
     stopped: "Apstājās",
@@ -753,7 +753,6 @@ const TRANSLATIONS = {
       },
       "intelligent-skill-selection": {
         title: "Izglītības un prasmu izvēle, kas balstota uz spējām",
-        "beta-badge": "Beta",
         description:
           'Ievērojiet neierobežotu rīku un "cut token" izmantošanas samazinājumu līdz 80% uz katru pieprasījumu – AnythingLLM automātiski izvēlas piemērotākās prasmes katram pieprasījumam.',
         "max-tools": {

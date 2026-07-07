@@ -61,7 +61,7 @@ const TRANSLATIONS = {
     no: "いいえ",
     search: "検索",
     username_requirements:
-      "ユーザー名は2〜32文字で、小文字で始まり、小文字、数字、アンダースコア、ハイフン、ピリオドのみを含む必要があります。",
+      "ユーザー名は2〜64文字で、小文字で始まり、小文字、数字、アンダースコア、ハイフン、ピリオドのみを含む必要があります。",
     on: "～について",
     none: "なし",
     stopped: "停止",
@@ -726,7 +726,6 @@ const TRANSLATIONS = {
       },
       "intelligent-skill-selection": {
         title: "知的なスキル選択",
-        "beta-badge": "ベータ版",
         description:
           "クエリごとに、無制限のツールを使用し、トークン使用量を最大80%削減できます。AnythingLLMは、各プロンプトに対して最適なスキルを自動的に選択します。",
         "max-tools": {
