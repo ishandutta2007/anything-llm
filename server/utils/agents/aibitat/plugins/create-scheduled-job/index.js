@@ -24,12 +24,16 @@ const createScheduledJob = {
           description:
             "Create a recurring Scheduled Job that automatically runs an agent prompt on a schedule (e.g. 'every weekday at 9am summarize my inbox and email me'). " +
             "Provide `schedule` as a standard 5-field cron expression (minute hour dom month dow) in the USER'S LOCAL TIME - the server automatically converts to UTC. " +
-            "IMPORTANT - the job runs later on its own with NO chat context and can ONLY use the tools you list in `tools`. Think about what the prompt needs to actually accomplish the task (e.g. searching the web, scraping a page, sending email) and pass those tool IDs. " +
-            "If you are unsure which tool IDs exist, FIRST call this tool with `listTools: true` to get the catalog, then call it again with your chosen `tools`. " +
-            "If you omit `tools`, the job will run with NO tools (only the base language model) - so always pass the tools the task needs.",
+            "IMPORTANT - the job runs later on its own with NO chat context and can ONLY use the tools you list in `tools`. " +
+            "Tool IDs for scheduled jobs are NOT the same as agent plugin names - you MUST call this tool with `listTools: true` first to get the exact valid IDs, then call it again with your chosen `tools`. " +
+            "Never guess tool IDs - always discover them via `listTools: true` first.",
           examples: [
             {
-              prompt: "Every weekday at 9am summarize my inbox and email me",
+              prompt: "Step 1 - always discover valid tool IDs first",
+              call: JSON.stringify({ listTools: true }),
+            },
+            {
+              prompt: "Step 2 - create the job using IDs returned by listTools",
               call: JSON.stringify({
                 name: "Weekday inbox summary",
                 prompt:
@@ -41,10 +45,6 @@ const createScheduledJob = {
                 ],
               }),
             },
-            {
-              prompt: "What tools can a scheduled job use?",
-              call: JSON.stringify({ listTools: true }),
-            },
           ],
           parameters: {
             $schema: "http://json-schema.org/draft-07/schema#",
@@ -53,7 +53,7 @@ const createScheduledJob = {
               listTools: {
                 type: "boolean",
                 description:
-                  "If true, ignore all other arguments and return the catalog of valid tool IDs that can be passed in `tools`. Call this first if unsure which tool IDs to use.",
+                  "Returns the catalog of valid tool IDs for scheduled jobs. ALWAYS call this first before specifying any `tools` - scheduled job tool IDs are different from agent plugin names and must be discovered, not guessed.",
               },
               name: {
                 type: "string",

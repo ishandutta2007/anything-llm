@@ -143,7 +143,7 @@ function rejectedToolsMessage(rejected, fullCatalog, readyCatalog) {
 
   return `${lines.join(
     "\n"
-  )}\n\nChoose only from these ready-to-use tools:\n\n${renderCatalog(
+  )}\n\nCall this tool with \`listTools: true\` to see valid IDs, or choose only from these ready-to-use tools:\n\n${renderCatalog(
     readyCatalog
   )}`;
 }
