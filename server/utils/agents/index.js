@@ -227,16 +227,6 @@ class AgentHandler {
         if (!process.env.GEMINI_API_KEY)
           throw new Error("Gemini API key must be provided to use agents.");
         break;
-      case "dpais":
-        if (!process.env.DPAIS_LLM_BASE_PATH)
-          throw new Error(
-            "Dell Pro AI Studio base path must be provided to use agents."
-          );
-        if (!process.env.DPAIS_LLM_MODEL_PREF)
-          throw new Error(
-            "Dell Pro AI Studio model must be set to use agents."
-          );
-        break;
       case "moonshotai":
         if (!process.env.MOONSHOT_AI_MODEL_PREF)
           throw new Error("Moonshot AI model must be set to use agents.");
@@ -301,9 +291,9 @@ class AgentHandler {
   providerDefault(provider = this.provider) {
     switch (provider) {
       case "openai":
-        return process.env.OPEN_MODEL_PREF ?? "gpt-4o";
+        return process.env.OPEN_MODEL_PREF ?? "gpt-4.1-nano";
       case "anthropic":
-        return process.env.ANTHROPIC_MODEL_PREF ?? "claude-3-sonnet-20240229";
+        return process.env.ANTHROPIC_MODEL_PREF ?? "claude-sonnet-4-6";
       case "lmstudio":
         return process.env.LMSTUDIO_MODEL_PREF ?? null;
       case "ollama":
@@ -357,8 +347,6 @@ class AgentHandler {
         return process.env.PPIO_MODEL_PREF ?? "qwen/qwen2.5-32b-instruct";
       case "gemini":
         return process.env.GEMINI_LLM_MODEL_PREF ?? "gemini-2.0-flash-lite";
-      case "dpais":
-        return process.env.DPAIS_LLM_MODEL_PREF;
       case "cometapi":
         return process.env.COMETAPI_LLM_MODEL_PREF ?? "gpt-5-mini";
       case "foundry":
@@ -750,10 +738,12 @@ class AgentHandler {
           ...(parsedFiles || []).map((doc) => ({
             name: doc.title || "Uploaded Document",
             content: doc.pageContent,
+            metadata: doc,
           })),
           ...(pinnedDocs || []).map((doc) => ({
             name: doc.title || doc.metadata?.title || "Pinned Document",
             content: doc.pageContent,
+            metadata: doc.metadata || doc,
           })),
         ];
 
@@ -766,6 +756,8 @@ class AgentHandler {
           this.log(
             `Injecting ${pinnedDocs.length} pinned document(s) into user message`
           );
+
+        this.aibitat?.addDocumentCitations(allDocuments);
 
         return (
           "\n\n<attached_documents>\n" +
@@ -791,7 +783,7 @@ class AgentHandler {
   ) {
     this.aibitat = new AIbitat({
       provider: this.provider ?? "openai",
-      model: this.model ?? "gpt-4o",
+      model: this.model ?? "gpt-4.1-nano",
       chats: await this.#chatHistory(20),
       handlerProps: {
         invocation: this.invocation,

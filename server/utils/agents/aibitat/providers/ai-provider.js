@@ -13,7 +13,6 @@
 const { v4 } = require("uuid");
 const { ChatOpenAI } = require("@langchain/openai");
 const { ChatAnthropic } = require("@langchain/anthropic");
-const { ChatCohere } = require("@langchain/cohere");
 const { ChatOllama } = require("@langchain/community/chat_models/ollama");
 const { toValidNumber, safeJsonParse } = require("../../../http");
 const { getLLMProviderClass } = require("../../../helpers");
@@ -23,13 +22,9 @@ const {
 } = require("../../../AiProviders/dockerModelRunner");
 const { parseFoundryBasePath } = require("../../../AiProviders/foundry");
 const { AzureOpenAiLLM } = require("../../../AiProviders/azureOpenAi");
-const { DellProAiStudioLLM } = require("../../../AiProviders/dellProAiStudio");
 const {
   SystemPromptVariables,
 } = require("../../../../models/systemPromptVariables");
-const {
-  createBedrockChatClient,
-} = require("../../../AiProviders/bedrock/utils");
 const { OllamaAILLM } = require("../../../AiProviders/ollama");
 
 const DEFAULT_WORKSPACE_PROMPT =
@@ -97,6 +92,13 @@ class Provider {
    */
   _requestStartTime = 0;
 
+  /**
+   * Tag identifying this provider for ENV-based opt-out of tool calling.
+   * Subclasses should set this in their constructor.
+   * @type {string|null}
+   */
+  providerTag = null;
+
   constructor(client) {
     if (this.constructor == Provider) {
       return;
@@ -129,26 +131,27 @@ class Provider {
   }
 
   /**
-   * Whether this provider supports native tool calling via the ENV flag.
-   * @param {string} providerTag - The tag of the provider to check (e.g. "bedrock", "openrouter", "groq", etc.).
+   * Checks if the provider is disabled via the PROVIDER_DISABLE_NATIVE_TOOL_CALLING env.
+   * @param {string} providerTag - The tag of the provider to check.
    * @returns {boolean}
    */
-  supportsNativeToolCallingViaEnv(providerTag = "") {
-    if (!("PROVIDER_SUPPORTS_NATIVE_TOOL_CALLING" in process.env)) return false;
+  optsOutOfNativeToolCallingViaEnv(providerTag = null) {
     if (!providerTag) return false;
-    return (
-      process.env.PROVIDER_SUPPORTS_NATIVE_TOOL_CALLING?.includes(
-        providerTag
-      ) || false
-    );
+    if (!("PROVIDER_DISABLE_NATIVE_TOOL_CALLING" in process.env)) return false;
+    const disabledProviders =
+      process.env.PROVIDER_DISABLE_NATIVE_TOOL_CALLING.split(",");
+    return disabledProviders.includes(providerTag);
   }
 
   /**
    * Whether this provider supports native OpenAI-compatible tool calling.
+   * Defaults to true (opt-out via PROVIDER_DISABLE_NATIVE_TOOL_CALLING env).
+   * Override in subclass and return false only if the provider genuinely cannot support tools.
    * @returns {boolean|Promise<boolean>}
    */
   supportsNativeToolCalling() {
-    return false;
+    if (!this.providerTag) return true;
+    return !this.optsOutOfNativeToolCallingViaEnv(this.providerTag);
   }
 
   /**
@@ -227,7 +230,13 @@ class Provider {
           ...config,
         });
       case "bedrock":
-        return createBedrockChatClient(config);
+        return new ChatOpenAI({
+          configuration: {
+            baseURL: `https://bedrock-mantle.${process.env.AWS_BEDROCK_LLM_REGION}.api.aws/v1`,
+          },
+          apiKey: process.env.AWS_BEDROCK_LLM_API_KEY ?? null,
+          ...config,
+        });
       case "azure":
         return new ChatOpenAI({
           configuration: {
@@ -324,7 +333,10 @@ class Provider {
           ...config,
         });
       case "cohere":
-        return new ChatCohere({
+        return new ChatOpenAI({
+          configuration: {
+            baseURL: "https://api.cohere.ai/compatibility/v1",
+          },
           apiKey: process.env.COHERE_API_KEY ?? null,
           ...config,
         });
@@ -443,14 +455,6 @@ class Provider {
             baseURL: process.env.LEMONADE_LLM_BASE_PATH,
           },
           apiKey: process.env.LEMONADE_LLM_API_KEY || null,
-          ...config,
-        });
-      case "dpais":
-        return new ChatOpenAI({
-          configuration: {
-            baseURL: DellProAiStudioLLM.parseBasePath(),
-          },
-          apiKey: null,
           ...config,
         });
       default:

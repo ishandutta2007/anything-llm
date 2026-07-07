@@ -6,7 +6,7 @@ const { safeJsonParse } = require("../../../http");
 
 /**
  * The agent provider for the OpenAI API.
- * By default, the model is set to 'gpt-3.5-turbo'.
+ * By default, the model is set to 'gpt-4.1-nano'.
  */
 class OpenAIProvider extends Provider {
   model;
@@ -15,13 +15,14 @@ class OpenAIProvider extends Provider {
       options = {
         apiKey: process.env.OPEN_AI_KEY,
       },
-      model = "gpt-4o",
+      model = "gpt-4.1-nano",
     } = config;
 
     const client = new OpenAI(options);
 
     super(client);
 
+    this.providerTag = "openai";
     this.model = model;
   }
 
@@ -32,7 +33,7 @@ class OpenAIProvider extends Provider {
   /**
    * Whether this provider supports native OpenAI-compatible tool calling.
    * - OpenAI always supports tool calling.
-   * @returns {Promise<boolean>}
+   * @returns {boolean}
    */
   supportsNativeToolCalling() {
     return true;

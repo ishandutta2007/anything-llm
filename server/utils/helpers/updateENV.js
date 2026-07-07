@@ -1,7 +1,4 @@
 const { Telemetry } = require("../../models/telemetry");
-const {
-  SUPPORTED_CONNECTION_METHODS,
-} = require("../AiProviders/bedrock/utils");
 const { resetAllVectorStores } = require("../vectorStore/resetAllVectorStores");
 
 const KEY_MAPPING = {
@@ -153,20 +150,6 @@ const KEY_MAPPING = {
     checks: [isNotEmpty],
   },
 
-  // Hugging Face LLM Inference Settings
-  HuggingFaceLLMEndpoint: {
-    envKey: "HUGGING_FACE_LLM_ENDPOINT",
-    checks: [isNotEmpty, isValidURL, validHuggingFaceEndpoint],
-  },
-  HuggingFaceLLMAccessToken: {
-    envKey: "HUGGING_FACE_LLM_API_KEY",
-    checks: [isNotEmpty],
-  },
-  HuggingFaceLLMTokenLimit: {
-    envKey: "HUGGING_FACE_LLM_TOKEN_LIMIT",
-    checks: [nonZero],
-  },
-
   // KoboldCPP Settings
   KoboldCPPBasePath: {
     envKey: "KOBOLD_CPP_BASE_PATH",
@@ -239,29 +222,10 @@ const KEY_MAPPING = {
     checks: [nonZero],
   },
 
-  // AWS Bedrock LLM InferenceSettings
-  AwsBedrockLLMConnectionMethod: {
-    envKey: "AWS_BEDROCK_LLM_CONNECTION_METHOD",
-    checks: [
-      (input) =>
-        SUPPORTED_CONNECTION_METHODS.includes(input) ? null : "invalid Value",
-    ],
-  },
-  AwsBedrockLLMAccessKeyId: {
-    envKey: "AWS_BEDROCK_LLM_ACCESS_KEY_ID",
-    checks: [],
-  },
-  AwsBedrockLLMAccessKey: {
-    envKey: "AWS_BEDROCK_LLM_ACCESS_KEY",
-    checks: [],
-  },
-  AwsBedrockLLMSessionToken: {
-    envKey: "AWS_BEDROCK_LLM_SESSION_TOKEN",
-    checks: [],
-  },
-  AwsBedrockLLMAPIKey: {
+  // AWS Bedrock LLM Settings
+  AwsBedrockLLMApiKey: {
     envKey: "AWS_BEDROCK_LLM_API_KEY",
-    checks: [],
+    checks: [isNotEmpty],
   },
   AwsBedrockLLMRegion: {
     envKey: "AWS_BEDROCK_LLM_REGION",
@@ -273,24 +237,6 @@ const KEY_MAPPING = {
   },
   AwsBedrockLLMTokenLimit: {
     envKey: "AWS_BEDROCK_LLM_MODEL_TOKEN_LIMIT",
-    checks: [nonZero],
-  },
-  AwsBedrockLLMMaxOutputTokens: {
-    envKey: "AWS_BEDROCK_LLM_MAX_OUTPUT_TOKENS",
-    checks: [nonZero],
-  },
-
-  // Dell Pro AI Studio Settings
-  DellProAiStudioBasePath: {
-    envKey: "DPAIS_LLM_BASE_PATH",
-    checks: [isNotEmpty, validDockerizedUrl],
-  },
-  DellProAiStudioModelPref: {
-    envKey: "DPAIS_LLM_MODEL_PREF",
-    checks: [isNotEmpty],
-  },
-  DellProAiStudioTokenLimit: {
-    envKey: "DPAIS_LLM_MODEL_TOKEN_LIMIT",
     checks: [nonZero],
   },
 
@@ -335,6 +281,14 @@ const KEY_MAPPING = {
   GenericOpenAiEmbeddingMaxConcurrentChunks: {
     envKey: "GENERIC_OPEN_AI_EMBEDDING_MAX_CONCURRENT_CHUNKS",
     checks: [nonZero],
+  },
+  GenericOpenAiEmbeddingPassagePrefix: {
+    envKey: "GENERIC_OPEN_AI_EMBEDDING_PASSAGE_PREFIX",
+    checks: [],
+  },
+  GenericOpenAiEmbeddingQueryPrefix: {
+    envKey: "GENERIC_OPEN_AI_EMBEDDING_QUERY_PREFIX",
+    checks: [],
   },
 
   // Vector Database Selection Settings
@@ -546,6 +500,21 @@ const KEY_MAPPING = {
     checks: [validLocalWhisper],
     postUpdate: [],
   },
+  WhisperGenericOpenAiBaseUrl: {
+    envKey: "WHISPER_GENERIC_OPEN_AI_BASE_URL",
+    checks: [isValidURL],
+    postUpdate: [],
+  },
+  WhisperGenericOpenAiApiKey: {
+    envKey: "WHISPER_GENERIC_OPEN_AI_API_KEY",
+    checks: [],
+    postUpdate: [],
+  },
+  WhisperGenericOpenAiModel: {
+    envKey: "WHISPER_GENERIC_OPEN_AI_MODEL",
+    checks: [isNotEmpty],
+    postUpdate: [],
+  },
 
   // System Settings
   AuthToken: {
@@ -613,6 +582,18 @@ const KEY_MAPPING = {
   },
   AgentPerplexityApiKey: {
     envKey: "AGENT_PERPLEXITY_API_KEY",
+    checks: [],
+  },
+  AgentBraveApiKey: {
+    envKey: "AGENT_BRAVE_API_KEY",
+    checks: [],
+  },
+  AgentCrwApiKey: {
+    envKey: "AGENT_CRW_API_KEY",
+    checks: [],
+  },
+  AgentCrwApiUrl: {
+    envKey: "AGENT_CRW_API_URL",
     checks: [],
   },
 
@@ -724,6 +705,16 @@ const KEY_MAPPING = {
   STTOpenAICompatibleEndpoint: {
     envKey: "STT_OPEN_AI_COMPATIBLE_ENDPOINT",
     checks: [isValidURL],
+  },
+
+  // STT Groq
+  STTGroqApiKey: {
+    envKey: "STT_GROQ_API_KEY",
+    checks: [isNotEmpty],
+  },
+  STTGroqModel: {
+    envKey: "STT_GROQ_MODEL",
+    checks: [isNotEmpty],
   },
 
   // DeepSeek Options
@@ -1020,6 +1011,7 @@ function supportedSTTProvider(input = "") {
     "openai",
     "lemonade",
     "deepgram",
+    "groq",
     "generic-openai",
   ].includes(input);
   return validSelection ? null : `${input} is not a valid STT provider.`;
@@ -1047,7 +1039,6 @@ function supportedLLM(input = "") {
     "togetherai",
     "fireworksai",
     "mistral",
-    "huggingface",
     "perplexity",
     "openrouter",
     "novita",
@@ -1063,7 +1054,6 @@ function supportedLLM(input = "") {
     "xai",
     "nvidia-nim",
     "ppio",
-    "dpais",
     "moonshotai",
     "cometapi",
     "foundry",
@@ -1081,7 +1071,7 @@ function supportedLLM(input = "") {
 }
 
 function supportedTranscriptionProvider(input = "") {
-  const validSelection = ["openai", "local"].includes(input);
+  const validSelection = ["openai", "generic-openai", "local"].includes(input);
   return validSelection
     ? null
     : `${input} is not a valid transcription model provider.`;
@@ -1178,12 +1168,6 @@ async function validDockerizedUrl(input = "") {
   }
 
   return null;
-}
-
-function validHuggingFaceEndpoint(input = "") {
-  return input.slice(-6) !== ".cloud"
-    ? `Your HF Endpoint should end in ".cloud"`
-    : null;
 }
 
 function noRestrictedChars(input = "") {
@@ -1441,7 +1425,7 @@ function dumpENV() {
     "AWS_BEDROCK_STREAMING_DISABLED",
 
     // Allow capabilities for specific providers.
-    "PROVIDER_SUPPORTS_NATIVE_TOOL_CALLING",
+    "PROVIDER_DISABLE_NATIVE_TOOL_CALLING",
     "PROVIDER_SUPPORTS_REASONING",
     "PROVIDER_SUPPORTS_IMAGE_GENERATION",
     "PROVIDER_SUPPORTS_VISION",
@@ -1453,6 +1437,9 @@ function dumpENV() {
     // Allow setting a custom fetch timeouts for providers
     "ANYTHINGLLM_FETCH_TIMEOUT",
     "ANYTHINGLLM_MAX_RETRIES",
+
+    // Deny-by-default for embed widgets that have no allowlist configured
+    "EMBED_REQUIRE_ALLOWLIST",
   ];
 
   // Simple sanitization of each value to prevent ENV injection via newline or quote escaping.
