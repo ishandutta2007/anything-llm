@@ -12,7 +12,7 @@ const { gmailAgent } = require("./gmail/index.js");
 const { outlookAgent } = require("./outlook/index.js");
 const { googleCalendarAgent } = require("./google-calendar/index.js");
 const { requestUserInput } = require("./request-user-input.js");
-const { createScheduledJob } = require("./create-scheduled-job.js");
+const { createScheduledJob } = require("./create-scheduled-job/index.js");
 
 module.exports = {
   webScraping,

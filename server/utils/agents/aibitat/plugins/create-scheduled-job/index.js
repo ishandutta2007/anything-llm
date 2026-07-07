@@ -1,5 +1,7 @@
-const { ScheduledJob } = require("../../../../models/scheduledJob");
-const { BackgroundService } = require("../../../BackgroundWorkers");
+const { ScheduledJob } = require("../../../../../models/scheduledJob");
+const { BackgroundService } = require("../../../../BackgroundWorkers");
+const { UserMetaCache } = require("../../../../userLocale");
+const { convertCronLocalToUtc } = require("./cronUtils");
 
 /**
  * Flatten the Scheduled Jobs tool catalog into a single Set of valid tool IDs.
@@ -98,15 +100,13 @@ const createScheduledJob = {
           name: this.name,
           description:
             "Create a recurring Scheduled Job that automatically runs an agent prompt on a schedule (e.g. 'every weekday at 9am summarize my inbox and email me'). " +
-            "Provide `schedule` as a standard 5-field UTC cron expression (minute hour dom month dow). " +
-            "If the user gives a local time, ask them for their UTC offset or timezone so you can convert correctly before writing the cron. " +
+            "Provide `schedule` as a standard 5-field cron expression (minute hour dom month dow) in the USER'S LOCAL TIME - the server automatically converts to UTC. " +
             "IMPORTANT - the job runs later on its own with NO chat context and can ONLY use the tools you list in `tools`. Think about what the prompt needs to actually accomplish the task (e.g. searching the web, scraping a page, sending email) and pass those tool IDs. " +
             "If you are unsure which tool IDs exist, FIRST call this tool with `listTools: true` to get the catalog, then call it again with your chosen `tools`. " +
             "If you omit `tools`, the job will run with NO tools (only the base language model) - so always pass the tools the task needs.",
           examples: [
             {
-              prompt:
-                "Every weekday at 9am UTC summarize my inbox and email me",
+              prompt: "Every weekday at 9am summarize my inbox and email me",
               call: JSON.stringify({
                 name: "Weekday inbox summary",
                 prompt:
@@ -145,7 +145,7 @@ const createScheduledJob = {
               schedule: {
                 type: "string",
                 description:
-                  "A standard 5-field cron expression in UTC (minute hour dom month dow). Examples: '0 9 * * 1-5' = weekdays at 09:00 UTC, '30 14 * * *' = daily at 14:30 UTC, '0 */2 * * *' = every 2 hours.",
+                  "A standard 5-field cron expression in the user's LOCAL time (minute hour dom month dow). The server converts to UTC automatically. Examples: '0 9 * * 1-5' = weekdays at 09:00 local, '30 14 * * *' = daily at 14:30 local, '0 */2 * * *' = every 2 hours (no conversion needed).",
               },
               tools: {
                 type: "array",
@@ -191,10 +191,17 @@ const createScheduledJob = {
             if (!args.schedule?.trim())
               return "A `schedule` cron expression is required.";
 
-            const cron = args.schedule.trim();
-            if (!ScheduledJob.isValidCron(cron)) {
-              return `'${cron}' is not a valid 5-field cron expression. Please provide a valid UTC cron string (e.g. '0 9 * * 1-5' for weekdays at 09:00 UTC).`;
+            const localCron = args.schedule.trim();
+            if (!ScheduledJob.isValidCron(localCron)) {
+              return `'${localCron}' is not a valid 5-field cron expression. Please provide a valid cron string (e.g. '0 9 * * 1-5' for weekdays at 09:00).`;
             }
+
+            // Convert the model's local-time cron to UTC using the user's
+            // timezone from the per-request locale cache (populated by the
+            // X-Timezone header on every authenticated request).
+            const userId = this.super.handlerProps.invocation?.user_id ?? null;
+            const { timezone } = UserMetaCache.get(userId);
+            const cron = convertCronLocalToUtc(localCron, timezone);
 
             // Resolve the tools the job may use. A scheduled job can ONLY use
             // the tools stored on it, and - exactly like the manual Scheduled
@@ -231,7 +238,7 @@ const createScheduledJob = {
             new BackgroundService().addScheduledJob(job);
 
             this.super.introspect(
-              `${this.caller}: Created scheduled job "${job.name}" (cron ${cron}).`
+              `${this.caller}: Created scheduled job "${job.name}" (local: ${localCron}, UTC: ${cron}, tz: ${timezone}).`
             );
 
             const nextRun = job.nextRunAt
@@ -245,7 +252,7 @@ const createScheduledJob = {
             const cardPayload = {
               jobId: job.id,
               jobName: job.name,
-              schedule: cron,
+              schedule: localCron,
               nextRun,
             };
             this.super.socket?.send?.("scheduledJobCreated", cardPayload);
@@ -259,9 +266,13 @@ const createScheduledJob = {
             const toolNote = tools?.length
               ? `It may use these tools: ${tools.join(", ")}.`
               : "No tools were selected, so it runs with no tools (base language model only).";
+            const tzNote =
+              localCron !== cron
+                ? ` (converted from \`${localCron}\` ${timezone} to \`${cron}\` UTC)`
+                : ` (\`${cron}\` UTC)`;
             return (
               `Created scheduled job "${job.name}" (#${job.id}). ` +
-              `Schedule: \`${cron}\` (UTC). ${toolNote} Next run: ${nextRun}. ` +
+              `Schedule: \`${localCron}\`${tzNote}. ${toolNote} Next run: ${nextRun}. ` +
               `The user can manage it from Settings > Scheduled Jobs.`
             );
           },
