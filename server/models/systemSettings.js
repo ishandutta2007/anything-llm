@@ -520,6 +520,9 @@ const SystemSettings = {
       WhisperProvider: process.env.WHISPER_PROVIDER || "local",
       WhisperModelPref:
         process.env.WHISPER_MODEL_PREF || "Xenova/whisper-small",
+      WhisperGenericOpenAiBaseUrl: process.env.WHISPER_GENERIC_OPEN_AI_BASE_URL,
+      WhisperGenericOpenAiApiKey: !!process.env.WHISPER_GENERIC_OPEN_AI_API_KEY,
+      WhisperGenericOpenAiModel: process.env.WHISPER_GENERIC_OPEN_AI_MODEL,
 
       // --------------------------------------------------------
       // TTS/STT  Selection Settings & Configs
@@ -854,7 +857,7 @@ const SystemSettings = {
     return {
       // OpenAI Keys
       OpenAiKey: !!process.env.OPEN_AI_KEY,
-      OpenAiModelPref: process.env.OPEN_MODEL_PREF || "gpt-4o",
+      OpenAiModelPref: process.env.OPEN_MODEL_PREF || "gpt-4.1-nano",
 
       // Azure + OpenAI Keys
       AzureOpenAiEndpoint: process.env.AZURE_OPENAI_ENDPOINT,
