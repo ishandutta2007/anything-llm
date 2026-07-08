@@ -103,8 +103,8 @@ export function gpuDeviceArgs(platform: Platform = PLATFORM): string[] {
 export function isoDeviceArgs(iso: string | undefined, platform: Platform = PLATFORM): string[] {
   if (!iso || platform !== 'win32') return [];
   return [
-    '-drive', `file=${iso},format=raw,if=none,media=cdrom,readonly=on,id=installcd`,
-    '-device', 'ide-cd,bus=ide.0,drive=installcd,bootindex=0',
+    '-drive', `file=${iso},media=cdrom,readonly=on,if=none,id=install-cdrom`,
+    '-device', 'usb-storage,drive=install-cdrom',
   ];
 }
 
@@ -166,8 +166,42 @@ interface StartVmOptions extends QemuArgsOptions {
   daemonize?: boolean;
 }
 
+/**
+ * Pick the best available display backend by probing the binary at runtime.
+ * Preference order: cocoa (native macOS) → gtk → sdl → vnc → none.
+ * The bundled QEMU is intentionally headless (only 'none'), which is correct
+ * for all normal agent flows. For base install, users with a display-capable
+ * QEMU (e.g. Homebrew) get a native window; others fall back to headless and
+ * can interact via the serial console or a separate VNC setup.
+ */
+function chooseDisplayArgs(binary: string, vncDisplay: number): string[] {
+  const result = spawnSync(binary, ['--display', 'help'], { stdio: 'pipe', encoding: 'utf8' });
+  const output = (result.stdout ?? '') + (result.stderr ?? '');
+  const backends = new Set(
+    output.split('\n').map((l) => l.trim()).filter((l) => /^[a-z][-a-z0-9]*$/.test(l)),
+  );
+
+  const prefer = PLATFORM === 'darwin'
+    ? ['cocoa', 'sdl', 'gtk', 'vnc']
+    : ['gtk', 'sdl', 'vnc'];
+
+  for (const b of prefer) {
+    if (backends.has(b)) {
+      if (b === 'vnc') {
+        const vncPort = 5900 + vncDisplay;
+        console.log(`No native display available — VNC server on localhost:${vncPort}.`);
+        console.log(`  macOS: open vnc://localhost:${vncPort}`);
+        return ['-display', `vnc=:${vncDisplay}`];
+      }
+      return ['-display', b];
+    }
+  }
+
+  return ['-display', 'none'];
+}
+
 export function startVm(opts: StartVmOptions): boolean {
-  const { pidFile, gui = false, daemonize = true } = opts;
+  const { pidFile, gui = false, daemonize = true, vncDisplay = 1 } = opts;
 
   if (isRunning(pidFile)) {
     const pid = readPid(pidFile);
@@ -179,18 +213,7 @@ export function startVm(opts: StartVmOptions): boolean {
   const args = buildQemuArgs(opts);
 
   if (gui) {
-    // GUI mode: show the VM screen, run in background.
-    // The bundled Windows QEMU build ships with no local display backend
-    // (only `-display none`), so on Windows we expose the screen over VNC
-    // instead of gtk/cocoa. Connect with a VNC viewer at 127.0.0.1:<5900+display>.
-    let displayArgs: string[];
-    if (PLATFORM === 'win32') {
-      const display = opts.vncDisplay ?? 1;
-      console.log(`VNC display enabled — connect a VNC viewer to 127.0.0.1:${5900 + display}`);
-      displayArgs = ['-display', 'none', '-vnc', `127.0.0.1:${display}`];
-    } else {
-      displayArgs = PLATFORM === 'darwin' ? ['-display', 'cocoa'] : ['-display', 'gtk'];
-    }
+    const displayArgs = chooseDisplayArgs(binary, vncDisplay);
     const child = spawn(binary, [...args, ...displayArgs], {
       stdio: 'ignore',
       detached: true,

@@ -116,11 +116,14 @@ Download the correct arch ISO (x64 or arm64) from the [Debian OSUOSL mirror](htt
 
 Or use the provided fetch script: `scripts/fetch-debian-iso.{sh,ps1}`.
 
-## Making the Base Image
+## Getting the Base Image
 
 Building the base image requires going through a VNC-based OS install as a VM. Follow the detailed walkthrough in [DEVELOPMENT.md](./DEVELOPMENT.md).
 
-Since the base image is still evolving rapidly, we don't yet ship a pre-built one — you'll need to build it from scratch. We know. We're working on automating this.
+If you want to just grab our pre-built base image, you can use the provided fetch script: `scripts/fetch-base-image.{sh,ps1}`.
+
+We provide pre-built base images for macOS ARM64 and Windows x64 currently, but we're working on supporting more architectures.
+
 
 ## Starting an Agent
 

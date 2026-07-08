@@ -48,12 +48,15 @@ export function registerBaseCommand(program: Command): void {
       }
 
       info('=== Installing base image ===');
-      info("A QEMU window will open with the Debian installer.");
+      info('Starting QEMU with VNC display — connect with any VNC viewer:');
+      info('  macOS built-in:  open vnc://localhost:5901');
+      info('  RealVNC / Tiger: connect to localhost:5901');
       info(`Create user '${VM_USER}' during install. Enable SSH. Skip desktop environment.`);
 
       startVm({
         disk: BASE_DISK,
         efi: BASE_EFI,
+        iso,
         sshPort: BASE_SSH_PORT,
         appPort: BASE_APP_PORT,
         pidFile: pf,
@@ -109,6 +112,11 @@ export function registerBaseCommand(program: Command): void {
     .description('Run master/setup/provision.sh on the base image')
     .action(() => {
       info('=== Provisioning base image ===');
+      info('  Waiting for SSH (up to 3 min)...');
+      if (!waitForSsh(BASE_SSH_PORT, VM_USER, 60, 3)) {
+        jsonErr('SSH not reachable after 3 minutes. Is the base image running? Try: open-computer base up');
+      }
+      info('  SSH ready. Copying files...');
       scpTo(BASE_SSH_PORT, VM_USER, path.join(SETUP_DIR, 'provision.sh'), '/tmp/provision.sh');
       scpTo(BASE_SSH_PORT, VM_USER, path.join(SETUP_DIR, 'curl-wrapper.sh'), '/tmp/curl-wrapper.sh');
       info('  Copying win10 theme...');
