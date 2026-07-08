@@ -62,7 +62,7 @@ if ($ExistingFiles.Count -gt 0) {
 } else {
     Write-Host "No base image found for ${Platform}-${Arch}."
     Write-Host ""
-    $reply = Read-Host "Download ${TarName} (~3.2 GB)? [Y/n]"
+    $reply = Read-Host "Download ${TarName} (~2.3 GB)? [Y/n]"
     Write-Host ""
     if ($reply -match '^[nN]([oO])?$') {
         Write-Host "Skipping download."

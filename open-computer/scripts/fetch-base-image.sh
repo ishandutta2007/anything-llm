@@ -57,7 +57,7 @@ if [ ${#EXISTING_FILES[@]} -gt 0 ]; then
 else
   echo "No base image found for ${PLATFORM}-${ARCH}."
   echo ""
-  read -r -p "Download ${TAR_NAME} (~3.2 GB)? [Y/n] " REPLY
+  read -r -p "Download ${TAR_NAME} (~2.3 GB)? [Y/n] " REPLY
   echo ""
   case "$REPLY" in
     [nN][oO]|[nN])
