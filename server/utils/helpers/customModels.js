@@ -1054,37 +1054,30 @@ async function getLemonadeSTTModels(basePath = null) {
   }
 }
 
-async function getOMLXModels(basePath = null, apiKey = null) {
+async function getOMLXModels(basePath = null, _apiKey = null) {
+  const { OpenAI } = require("openai");
   const { parseOMLXBasePath } = require("../AiProviders/omlx");
   try {
-    const url = new URL(
-      parseOMLXBasePath(basePath ?? process.env.OMLX_LLM_BASE_PATH)
-    );
-    url.pathname += "/models";
+    const apiKey =
+      _apiKey === true
+        ? process.env.OMLX_LLM_API_KEY
+        : _apiKey || process.env.OMLX_LLM_API_KEY || null;
 
-    const token = apiKey ?? process.env.OMLX_LLM_API_KEY ?? null;
-    const res = await fetch(url.toString(), {
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
+    const client = new OpenAI({
+      baseURL: parseOMLXBasePath(basePath ?? process.env.OMLX_LLM_BASE_PATH),
+      apiKey,
     });
 
-    if (!res.ok) {
-      throw new Error(
-        `Something went wrong fetching models from OMLX (Status ${res.status})`
-      );
-    }
+    const models = (await client.models.list()).data.map((model) => ({
+      id: model.id,
+      name: model.id,
+      organization: model.owned_by,
+    }));
 
-    const { data = [] } = await res.json();
-    const models = data.map((model) => {
-      return {
-        id: model.id,
-        name: model.id,
-        organization: model.owned_by ?? "omlx",
-      };
-    });
-
-    return { models, error: null };
+    return {
+      models,
+      error: null,
+    };
   } catch (e) {
     console.error("OMLX:getOMLXModels", e.message);
     return { models: [], error: "Could not fetch OMLX models" };
