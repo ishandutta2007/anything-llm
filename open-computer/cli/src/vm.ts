@@ -3,7 +3,7 @@ import * as path from 'path';
 import { spawnSync, spawn } from 'child_process';
 import {
   PLATFORM, GUEST_ARCH, CPUS, RAM, SERVICE_DIR,
-  resolveQemuBinary, resolveQemuImgBinary, resolveEfiCode,
+  resolveQemuBinary, resolveQemuImgBinary, resolveEfiCode, resolveEfiVars,
 } from './config.js';
 
 // ── Process helpers ──────────────────────────────────────────────────────────
@@ -34,6 +34,21 @@ export function killPid(pidFile: string): void {
   fs.rmSync(pidFile, { force: true });
 }
 
+/**
+ * Remove a QEMU monitor socket file, tolerating platform quirks.
+ * On Windows the AF_UNIX socket file created by `-monitor unix:` can make
+ * fs.rmSync throw EACCES (lstat fails), so fall back to `cmd del`. Never throws.
+ */
+export function removeMonitorSock(sock: string): void {
+  try {
+    fs.rmSync(sock, { force: true });
+  } catch {
+    if (PLATFORM === 'win32') {
+      try { spawnSync('cmd', ['/c', 'del', '/f', '/q', sock], { stdio: 'ignore' }); } catch { /* ignore */ }
+    }
+  }
+}
+
 // ── QEMU args builder ────────────────────────────────────────────────────────
 
 interface QemuArgsOptions {
@@ -46,6 +61,8 @@ interface QemuArgsOptions {
   dev?: boolean;
   gui?: boolean;
   vncDisplay?: number;
+  /** Optional installer ISO to attach as a bootable CD-ROM (used by `base install`). */
+  iso?: string;
 }
 
 function buildMachineArgs(): string[] {
@@ -54,7 +71,11 @@ function buildMachineArgs(): string[] {
   const machine = GUEST_ARCH === 'aarch64' ? 'virt,highmem=on' : 'q35';
 
   if (PLATFORM === 'win32') {
-    return ['-machine', machine, '-accel', 'whpx', '-cpu', 'host'];
+    // WHPX + `-cpu host` crashes on some AMD CPUs (Zen4 exposes APX/MPX features
+    // WHPX rejects -> "Unexpected VP exit code 4"). Use a compatible named model
+    // for the x86_64 guest; the arm64 guest still needs host passthrough.
+    const cpu = GUEST_ARCH === 'x86_64' ? 'Haswell' : 'host';
+    return ['-machine', machine, '-accel', 'whpx', '-cpu', cpu];
   }
   if (PLATFORM === 'linux') {
     return ['-machine', machine, '-accel', 'kvm', '-cpu', 'host'];
@@ -64,12 +85,12 @@ function buildMachineArgs(): string[] {
 }
 
 export function buildQemuArgs(opts: QemuArgsOptions): string[] {
-  const { disk, efi, sshPort, pidFile, monitorSock, appPort, dev, vncDisplay = 1 } = opts;
+  const { disk, efi, sshPort, pidFile, monitorSock, appPort, dev, vncDisplay = 1, iso } = opts;
   const efiCode = resolveEfiCode();
 
-  // Ensure per-VM efi-vars.fd exists (copy from firmware if missing)
+  // Ensure per-VM efi-vars.fd exists (copy the writable VARS template if missing)
   if (!fs.existsSync(efi)) {
-    fs.copyFileSync(efiCode, efi);
+    fs.copyFileSync(resolveEfiVars(), efi);
   }
 
   let netdev = `user,id=net0,hostfwd=tcp::${sshPort}-:22`;
@@ -86,7 +107,9 @@ export function buildQemuArgs(opts: QemuArgsOptions): string[] {
     '-drive', `if=virtio,format=qcow2,discard=unmap,detect-zeroes=unmap,file=${disk}`,
     '-device', 'virtio-net-pci,netdev=net0',
     '-netdev', netdev,
-    '-device', 'virtio-gpu-pci',
+    // OVMF on the bundled Windows QEMU build does not render to virtio-gpu over
+    // VNC, so use a standard VGA adapter there; other platforms keep virtio-gpu.
+    ...(PLATFORM === 'win32' ? ['-device', 'VGA'] : ['-device', 'virtio-gpu-pci']),
     '-device', 'virtio-rng-pci',
     '-device', 'qemu-xhci',
     '-device', 'usb-kbd',
@@ -94,6 +117,16 @@ export function buildQemuArgs(opts: QemuArgsOptions): string[] {
     '-pidfile', pidFile,
     '-monitor', `unix:${monitorSock},server,nowait`,
   ];
+
+  // Attach the installer ISO as a bootable CD-ROM (base install only).
+  // q35 exposes a built-in AHCI controller (bus ide.0); bootindex=0 makes the
+  // CD boot before the empty system disk so OVMF starts the Debian installer.
+  if (iso) {
+    args.push(
+      '-drive', `file=${iso},format=raw,if=none,media=cdrom,readonly=on,id=installcd`,
+      '-device', 'ide-cd,bus=ide.0,drive=installcd,bootindex=0',
+    );
+  }
 
   if (dev) {
     // 9p virtio host share (dev mode): supported on macOS and Windows ARM64
@@ -129,8 +162,18 @@ export function startVm(opts: StartVmOptions): boolean {
   const args = buildQemuArgs(opts);
 
   if (gui) {
-    // GUI mode: show QEMU window, run in background
-    const displayArgs = PLATFORM === 'darwin' ? ['-display', 'cocoa'] : ['-display', 'gtk'];
+    // GUI mode: show the VM screen, run in background.
+    // The bundled Windows QEMU build ships with no local display backend
+    // (only `-display none`), so on Windows we expose the screen over VNC
+    // instead of gtk/cocoa. Connect with a VNC viewer at 127.0.0.1:<5900+display>.
+    let displayArgs: string[];
+    if (PLATFORM === 'win32') {
+      const display = opts.vncDisplay ?? 1;
+      console.log(`VNC display enabled — connect a VNC viewer to 127.0.0.1:${5900 + display}`);
+      displayArgs = ['-display', 'none', '-vnc', `127.0.0.1:${display}`];
+    } else {
+      displayArgs = PLATFORM === 'darwin' ? ['-display', 'cocoa'] : ['-display', 'gtk'];
+    }
     const child = spawn(binary, [...args, ...displayArgs], {
       stdio: 'ignore',
       detached: true,
@@ -234,7 +277,7 @@ export function waitForShutdown(
     if (!isRunning(pidFile)) {
       process.stdout.write(' stopped.\n');
       fs.rmSync(pidFile, { force: true });
-      fs.rmSync(monitorSock, { force: true });
+      removeMonitorSock(monitorSock);
       return;
     }
     process.stdout.write('.');
@@ -244,5 +287,5 @@ export function waitForShutdown(
   // Force kill after timeout
   process.stdout.write(' force-killing.\n');
   killPid(pidFile);
-  fs.rmSync(monitorSock, { force: true });
+  removeMonitorSock(monitorSock);
 }

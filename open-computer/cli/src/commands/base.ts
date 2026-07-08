@@ -5,11 +5,11 @@ import { Command } from 'commander';
 import {
   BASE_DIR, BASE_DISK, BASE_EFI, SETUP_DIR, VM_USER,
   SSH_PORT_BASE, APP_PORT_BASE,
-  isoPath, resolveEfiCode,
+  isoPath, resolveEfiVars, resolveQemuImgBinary,
 } from '../config.js';
 import {
   isRunning, readPid, killPid, startVm, waitForShutdown,
-  qemuImgConvert, fileSize, formatBytes,
+  qemuImgConvert, fileSize, formatBytes, removeMonitorSock,
 } from '../vm.js';
 import { sshRun, sshInteractive, scpTo, waitForSsh } from '../ssh.js';
 import { isJsonMode, jsonOk, jsonErr, info } from '../output.js';
@@ -37,12 +37,11 @@ export function registerBaseCommand(program: Command): void {
       }
       ensureBaseDir();
       if (!fs.existsSync(BASE_DISK)) {
-        spawnSync('qemu-img', ['create', '-f', 'qcow2', BASE_DISK, '40G'], { stdio: 'inherit' });
+        spawnSync(resolveQemuImgBinary(), ['create', '-f', 'qcow2', BASE_DISK, '40G'], { stdio: 'inherit' });
       }
       const pf = basePidfile();
       const sock = baseMonitorSock();
-      const efi = resolveEfiCode();
-      if (!fs.existsSync(BASE_EFI)) fs.copyFileSync(efi, BASE_EFI);
+      if (!fs.existsSync(BASE_EFI)) fs.copyFileSync(resolveEfiVars(), BASE_EFI);
 
       info('=== Installing base image ===');
       info("A QEMU window will open with the Debian installer.");
@@ -55,6 +54,7 @@ export function registerBaseCommand(program: Command): void {
         appPort: BASE_APP_PORT,
         pidFile: pf,
         monitorSock: sock,
+        iso,
         gui: true,
         daemonize: false,
       });
@@ -112,7 +112,7 @@ export function registerBaseCommand(program: Command): void {
       scpTo(BASE_SSH_PORT, VM_USER, path.join(SETUP_DIR, 'favicons'), '/tmp/favicons', { recursive: true });
       scpTo(BASE_SSH_PORT, VM_USER, path.join(SETUP_DIR, 'a11y-harvest.py'), '/tmp/a11y-harvest.py');
       scpTo(BASE_SSH_PORT, VM_USER, path.join(SETUP_DIR, 'a11y-action.py'), '/tmp/a11y-action.py');
-      sshRun(BASE_SSH_PORT, VM_USER, 'chmod +x /tmp/provision.sh && su -c /tmp/provision.sh');
+      sshInteractive(BASE_SSH_PORT, VM_USER, 'chmod +x /tmp/provision.sh && su -c /tmp/provision.sh');
     });
 
   base
@@ -176,7 +176,7 @@ export function registerBaseCommand(program: Command): void {
         return;
       }
       killPid(pf);
-      fs.rmSync(sock, { force: true });
+      removeMonitorSock(sock);
       info('Base image killed.');
     });
 

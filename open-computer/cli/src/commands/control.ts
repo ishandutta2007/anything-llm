@@ -9,7 +9,7 @@ import {
 } from '../registry.js';
 import {
   isRunning, readPid, killPid, startVm, waitForShutdown,
-  qemuImgConvert, fileSize, formatBytes,
+  qemuImgConvert, fileSize, formatBytes, removeMonitorSock,
 } from '../vm.js';
 import { sshRun, sshInteractive, scpTo, waitForSsh } from '../ssh.js';
 import { isJsonMode, jsonOk, jsonErr, info } from '../output.js';
@@ -139,7 +139,7 @@ export function registerControlCommands(program: Command): void {
       }
 
       killPid(pf);
-      fs.rmSync(sock, { force: true });
+      removeMonitorSock(sock);
 
       if (isJsonMode()) {
         jsonOk({ name, was_running: true });
