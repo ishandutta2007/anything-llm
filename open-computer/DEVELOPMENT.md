@@ -43,17 +43,28 @@ First, you need the QEMU and Debian ISO. Then you can run the following command 
 ./open-computer base install
 ```
 
-Then open your VNC viewer and connect to the VM. You will see the Debian installer GUI. Follow the prompts to install the OS fully until you get to the reboot step.
+This starts QEMU with the Debian ISO attached and opens a VNC server on `localhost:5901`. Connect with any VNC viewer to see the Debian installer:
+
+```bash
+# macOS built-in screen sharing
+open vnc://localhost:5901
+
+# Or any third-party VNC client (RealVNC, TigerVNC, …)
+```
+
+Follow the prompts to install the OS fully until you get to the reboot step.
 
 ```bash
 ./open-computer base down # shuts down the VM
 ```
 
-Then you can the following command to finalize the base image:
+Then finalize the base image:
 
 ```bash
 ./open-computer base up && ./open-computer base provision && ./open-computer base down && ./open-computer base compact
 ```
+
+> `base provision` waits automatically for SSH to become available before copying files — no need to add a manual `sleep` between `base up` and `base provision`.
 
 This will start the base image in a VM, provision it, shut it down, and compact the image to minimize space on disk.
 

@@ -46,6 +46,8 @@ interface QemuArgsOptions {
   dev?: boolean;
   gui?: boolean;
   vncDisplay?: number;
+  /** Path to an installer ISO to attach as a bootable USB CDROM */
+  iso?: string;
 }
 
 function buildMachineArgs(): string[] {
@@ -64,7 +66,7 @@ function buildMachineArgs(): string[] {
 }
 
 export function buildQemuArgs(opts: QemuArgsOptions): string[] {
-  const { disk, efi, sshPort, pidFile, monitorSock, appPort, dev, vncDisplay = 1 } = opts;
+  const { disk, efi, sshPort, pidFile, monitorSock, appPort, dev, iso, vncDisplay = 1 } = opts;
   const efiCode = resolveEfiCode();
 
   // Ensure per-VM efi-vars.fd exists (copy from firmware if missing)
@@ -95,6 +97,16 @@ export function buildQemuArgs(opts: QemuArgsOptions): string[] {
     '-monitor', `unix:${monitorSock},server,nowait`,
   ];
 
+  if (iso) {
+    // Attach installer ISO as a USB CDROM — works on both ARM64 (virt) and
+    // x86_64 (q35) since the USB xHCI controller is already in the device list.
+    // -cdrom uses if=ide which is unavailable on the virt machine type.
+    args.push(
+      '-drive', `file=${iso},media=cdrom,readonly=on,if=none,id=install-cdrom`,
+      '-device', 'usb-storage,drive=install-cdrom',
+    );
+  }
+
   if (dev) {
     // 9p virtio host share (dev mode): supported on macOS and Windows ARM64
     // Windows x64 uses SCP sync instead (handled separately)
@@ -116,8 +128,42 @@ interface StartVmOptions extends QemuArgsOptions {
   daemonize?: boolean;
 }
 
+/**
+ * Pick the best available display backend by probing the binary at runtime.
+ * Preference order: cocoa (native macOS) → gtk → sdl → vnc → none.
+ * The bundled QEMU is intentionally headless (only 'none'), which is correct
+ * for all normal agent flows. For base install, users with a display-capable
+ * QEMU (e.g. Homebrew) get a native window; others fall back to headless and
+ * can interact via the serial console or a separate VNC setup.
+ */
+function chooseDisplayArgs(binary: string, vncDisplay: number): string[] {
+  const result = spawnSync(binary, ['--display', 'help'], { stdio: 'pipe', encoding: 'utf8' });
+  const output = (result.stdout ?? '') + (result.stderr ?? '');
+  const backends = new Set(
+    output.split('\n').map((l) => l.trim()).filter((l) => /^[a-z][-a-z0-9]*$/.test(l)),
+  );
+
+  const prefer = PLATFORM === 'darwin'
+    ? ['cocoa', 'sdl', 'gtk', 'vnc']
+    : ['gtk', 'sdl', 'vnc'];
+
+  for (const b of prefer) {
+    if (backends.has(b)) {
+      if (b === 'vnc') {
+        const vncPort = 5900 + vncDisplay;
+        console.log(`No native display available — VNC server on localhost:${vncPort}.`);
+        console.log(`  macOS: open vnc://localhost:${vncPort}`);
+        return ['-display', `vnc=:${vncDisplay}`];
+      }
+      return ['-display', b];
+    }
+  }
+
+  return ['-display', 'none'];
+}
+
 export function startVm(opts: StartVmOptions): boolean {
-  const { pidFile, gui = false, daemonize = true } = opts;
+  const { pidFile, gui = false, daemonize = true, vncDisplay = 1 } = opts;
 
   if (isRunning(pidFile)) {
     const pid = readPid(pidFile);
@@ -129,8 +175,7 @@ export function startVm(opts: StartVmOptions): boolean {
   const args = buildQemuArgs(opts);
 
   if (gui) {
-    // GUI mode: show QEMU window, run in background
-    const displayArgs = PLATFORM === 'darwin' ? ['-display', 'cocoa'] : ['-display', 'gtk'];
+    const displayArgs = chooseDisplayArgs(binary, vncDisplay);
     const child = spawn(binary, [...args, ...displayArgs], {
       stdio: 'ignore',
       detached: true,
