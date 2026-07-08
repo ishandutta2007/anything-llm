@@ -8,7 +8,7 @@ export default function ChatModelSelection({
   selectedLLMModel,
   setSelectedLLMModel,
 }) {
-  const { defaultModels, customModels, loading } =
+  const { defaultModels, customModels, loading, downloadedModels } =
     useGetProviderModels(provider);
   if (DISABLED_PROVIDERS.includes(provider)) return null;
 
@@ -23,19 +23,6 @@ export default function ChatModelSelection({
           -- waiting for models --
         </option>
       </select>
-    );
-  }
-
-  const downloadedModels = [];
-
-  if (Array.isArray(customModels)) {
-    downloadedModels.push(...customModels.filter((model) => model?.downloaded));
-  } else {
-    // Break out downloaded models from the creator map
-    downloadedModels.push(
-      ...Object.values(customModels)
-        .flat()
-        .filter((model) => model?.downloaded)
     );
   }
 
