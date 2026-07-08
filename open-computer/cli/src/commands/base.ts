@@ -61,7 +61,6 @@ export function registerBaseCommand(program: Command): void {
         appPort: BASE_APP_PORT,
         pidFile: pf,
         monitorSock: sock,
-        iso,
         gui: true,
         daemonize: false,
       });
