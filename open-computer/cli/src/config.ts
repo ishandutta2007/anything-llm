@@ -64,21 +64,23 @@ export function resolveEfiCode(): string {
 // EFI variable store template (the writable pflash). This MUST be the VARS file,
 // not the CODE firmware: copying CODE into the vars slot leaves OVMF without a
 // variable store, so it never POSTs and the display stays blank.
-const EFI_VARS_FILE =
-  GUEST_ARCH === 'x86_64' ? 'edk2-i386-vars.fd' : 'edk2-arm-vars.fd';
+export function efiVarsFileName(guestArch: 'aarch64' | 'x86_64' = GUEST_ARCH): string {
+  return guestArch === 'x86_64' ? 'edk2-i386-vars.fd' : 'edk2-arm-vars.fd';
+}
 
 export function resolveEfiVars(): string {
+  const file = efiVarsFileName();
   if (QEMU_DIST) {
     // The bundled Windows build ships the vars template in share/ (not share/qemu/).
     for (const cand of [
-      path.join(QEMU_DIST, 'share', 'qemu', EFI_VARS_FILE),
-      path.join(QEMU_DIST, 'share', EFI_VARS_FILE),
+      path.join(QEMU_DIST, 'share', 'qemu', file),
+      path.join(QEMU_DIST, 'share', file),
     ]) {
       if (fs.existsSync(cand)) return cand;
     }
   }
   // Homebrew / system fallback
-  return `/opt/homebrew/share/qemu/${EFI_VARS_FILE}`;
+  return `/opt/homebrew/share/qemu/${file}`;
 }
 
 // Full path to the qemu-img binary

@@ -4,6 +4,7 @@ import { spawnSync, spawn } from 'child_process';
 import {
   PLATFORM, GUEST_ARCH, CPUS, RAM, SERVICE_DIR,
   resolveQemuBinary, resolveQemuImgBinary, resolveEfiCode, resolveEfiVars,
+  type Platform,
 } from './config.js';
 
 // ── Process helpers ──────────────────────────────────────────────────────────
@@ -65,23 +66,46 @@ interface QemuArgsOptions {
   iso?: string;
 }
 
-function buildMachineArgs(): string[] {
+// Machine/accelerator/CPU flags. Pure and parameterized so the platform matrix
+// can be unit tested without spawning QEMU.
+export function buildMachineArgs(
+  platform: Platform = PLATFORM,
+  guestArch: 'aarch64' | 'x86_64' = GUEST_ARCH,
+): string[] {
   // Machine type depends on the guest ISA, not the host OS.
   // 'virt' is the ARM64 platform board; 'q35' is the x86_64 platform board.
-  const machine = GUEST_ARCH === 'aarch64' ? 'virt,highmem=on' : 'q35';
+  const machine = guestArch === 'aarch64' ? 'virt,highmem=on' : 'q35';
 
-  if (PLATFORM === 'win32') {
+  if (platform === 'win32') {
     // WHPX + `-cpu host` crashes on some AMD CPUs (Zen4 exposes APX/MPX features
     // WHPX rejects -> "Unexpected VP exit code 4"). Use a compatible named model
     // for the x86_64 guest; the arm64 guest still needs host passthrough.
-    const cpu = GUEST_ARCH === 'x86_64' ? 'Haswell' : 'host';
+    const cpu = guestArch === 'x86_64' ? 'Haswell' : 'host';
     return ['-machine', machine, '-accel', 'whpx', '-cpu', cpu];
   }
-  if (PLATFORM === 'linux') {
+  if (platform === 'linux') {
     return ['-machine', machine, '-accel', 'kvm', '-cpu', 'host'];
   }
   // macOS (darwin): HVF for both arm64 (virt) and x64 (q35)
   return ['-machine', machine, '-accel', 'hvf', '-cpu', 'host'];
+}
+
+// Display adapter flags. OVMF on the bundled Windows QEMU build does not render
+// to virtio-gpu over VNC, so Windows uses a standard VGA adapter; other
+// platforms keep virtio-gpu. Pure and parameterized for testing.
+export function gpuDeviceArgs(platform: Platform = PLATFORM): string[] {
+  return platform === 'win32' ? ['-device', 'VGA'] : ['-device', 'virtio-gpu-pci'];
+}
+
+// Installer ISO CD-ROM flags (base install only). Scoped to Windows: it uses the
+// q35 AHCI bus (ide.0), which does not exist on the aarch64 `virt` machine used
+// on macOS/Linux arm64 hosts. Returns an empty array when not applicable.
+export function isoDeviceArgs(iso: string | undefined, platform: Platform = PLATFORM): string[] {
+  if (!iso || platform !== 'win32') return [];
+  return [
+    '-drive', `file=${iso},format=raw,if=none,media=cdrom,readonly=on,id=installcd`,
+    '-device', 'ide-cd,bus=ide.0,drive=installcd,bootindex=0',
+  ];
 }
 
 export function buildQemuArgs(opts: QemuArgsOptions): string[] {
@@ -109,9 +133,7 @@ export function buildQemuArgs(opts: QemuArgsOptions): string[] {
     '-drive', `if=virtio,format=qcow2,discard=unmap,detect-zeroes=unmap,file=${disk}`,
     '-device', 'virtio-net-pci,netdev=net0',
     '-netdev', netdev,
-    // OVMF on the bundled Windows QEMU build does not render to virtio-gpu over
-    // VNC, so use a standard VGA adapter there; other platforms keep virtio-gpu.
-    ...(PLATFORM === 'win32' ? ['-device', 'VGA'] : ['-device', 'virtio-gpu-pci']),
+    ...gpuDeviceArgs(),
     '-device', 'virtio-rng-pci',
     '-device', 'qemu-xhci',
     '-device', 'usb-kbd',
@@ -120,15 +142,8 @@ export function buildQemuArgs(opts: QemuArgsOptions): string[] {
     '-monitor', `unix:${monitorSock},server,nowait`,
   ];
 
-  // Attach the installer ISO as a bootable CD-ROM (base install only).
-  // Scoped to Windows: it uses the q35 AHCI bus (ide.0), which does not exist
-  // on the aarch64 `virt` machine used on macOS/Linux arm64 hosts.
-  if (iso && PLATFORM === 'win32') {
-    args.push(
-      '-drive', `file=${iso},format=raw,if=none,media=cdrom,readonly=on,id=installcd`,
-      '-device', 'ide-cd,bus=ide.0,drive=installcd,bootindex=0',
-    );
-  }
+  // Attach the installer ISO as a bootable CD-ROM (base install only, Windows).
+  args.push(...isoDeviceArgs(iso));
 
   if (dev) {
     // 9p virtio host share (dev mode): supported on macOS and Windows ARM64
