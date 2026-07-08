@@ -21,7 +21,9 @@ export default function OMLXOptions({ settings }) {
     ENDPOINTS: OMLX_COMMON_URLS,
   });
 
-  const [maxTokens, setMaxTokens] = useState(settings?.OMLXLLMTokenLimit ?? "");
+  const [contextWindowLimit, setContextWindowLimit] = useState(
+    settings?.OMLXLLMTokenLimit ?? ""
+  );
   return (
     <div className="w-full flex flex-col gap-y-7">
       <div className="w-full flex items-start gap-[36px] mt-1.5">
@@ -158,9 +160,11 @@ export default function OMLXOptions({ settings }) {
                 className="border-none bg-theme-settings-input-bg text-white placeholder:text-theme-settings-input-placeholder text-sm rounded-lg focus:outline-primary-button active:outline-primary-button outline-none block w-full p-2.5"
                 placeholder="Automatically managed"
                 min={1}
-                value={maxTokens}
+                value={contextWindowLimit}
                 onChange={(e) =>
-                  setMaxTokens(e.target.value ? Number(e.target.value) : "")
+                  setContextWindowLimit(
+                    e.target.value ? Number(e.target.value) : ""
+                  )
                 }
                 onScroll={(e) => e.target.blur()}
                 required={false}
