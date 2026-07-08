@@ -4,8 +4,8 @@ import { spawnSync } from 'child_process';
 import { Command } from 'commander';
 import {
   BASE_DIR, BASE_DISK, BASE_EFI, SETUP_DIR, VM_USER,
-  SSH_PORT_BASE, APP_PORT_BASE,
-  isoPath, resolveEfiVars, resolveQemuImgBinary,
+  SSH_PORT_BASE, APP_PORT_BASE, PLATFORM,
+  isoPath, resolveEfiCode, resolveEfiVars, resolveQemuImgBinary,
 } from '../config.js';
 import {
   isRunning, readPid, killPid, startVm, waitForShutdown,
@@ -41,7 +41,11 @@ export function registerBaseCommand(program: Command): void {
       }
       const pf = basePidfile();
       const sock = baseMonitorSock();
-      if (!fs.existsSync(BASE_EFI)) fs.copyFileSync(resolveEfiVars(), BASE_EFI);
+      // Windows needs the OVMF VARS template; other platforms keep the CODE copy
+      // (original behavior) to avoid any regression.
+      if (!fs.existsSync(BASE_EFI)) {
+        fs.copyFileSync(PLATFORM === 'win32' ? resolveEfiVars() : resolveEfiCode(), BASE_EFI);
+      }
 
       info('=== Installing base image ===');
       info("A QEMU window will open with the Debian installer.");

@@ -88,9 +88,11 @@ export function buildQemuArgs(opts: QemuArgsOptions): string[] {
   const { disk, efi, sshPort, pidFile, monitorSock, appPort, dev, vncDisplay = 1, iso } = opts;
   const efiCode = resolveEfiCode();
 
-  // Ensure per-VM efi-vars.fd exists (copy the writable VARS template if missing)
+  // Ensure per-VM efi-vars.fd exists. Windows needs the OVMF VARS template
+  // (copying CODE leaves OVMF without a variable store); other platforms keep
+  // the original behavior so their setup is unchanged.
   if (!fs.existsSync(efi)) {
-    fs.copyFileSync(resolveEfiVars(), efi);
+    fs.copyFileSync(PLATFORM === 'win32' ? resolveEfiVars() : efiCode, efi);
   }
 
   let netdev = `user,id=net0,hostfwd=tcp::${sshPort}-:22`;
@@ -119,9 +121,9 @@ export function buildQemuArgs(opts: QemuArgsOptions): string[] {
   ];
 
   // Attach the installer ISO as a bootable CD-ROM (base install only).
-  // q35 exposes a built-in AHCI controller (bus ide.0); bootindex=0 makes the
-  // CD boot before the empty system disk so OVMF starts the Debian installer.
-  if (iso) {
+  // Scoped to Windows: it uses the q35 AHCI bus (ide.0), which does not exist
+  // on the aarch64 `virt` machine used on macOS/Linux arm64 hosts.
+  if (iso && PLATFORM === 'win32') {
     args.push(
       '-drive', `file=${iso},format=raw,if=none,media=cdrom,readonly=on,id=installcd`,
       '-device', 'ide-cd,bus=ide.0,drive=installcd,bootindex=0',
