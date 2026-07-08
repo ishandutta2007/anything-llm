@@ -5,7 +5,7 @@ $ProgressPreference = "SilentlyContinue"
 
 $ScriptDir  = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $ProjectDir = Split-Path -Parent $ScriptDir
-$BaseImageDir = Join-Path $ProjectDir 'master' 'base_image'
+$BaseImageDir = Join-Path (Join-Path $ProjectDir 'master') 'base_image'
 
 $BaseImageDate = "06_08_2026"
 $BaseUrl = if ($env:OPEN_COMPUTER_BASE_IMAGE_URL) { $env:OPEN_COMPUTER_BASE_IMAGE_URL } else { "https://cdn.anythingllm.com/support/open-computer/base-images/$BaseImageDate" }

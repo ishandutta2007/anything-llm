@@ -174,7 +174,7 @@ interface StartVmOptions extends QemuArgsOptions {
  * QEMU (e.g. Homebrew) get a native window; others fall back to headless and
  * can interact via the serial console or a separate VNC setup.
  */
-function chooseDisplayArgs(binary: string, vncDisplay: number): string[] {
+function chooseDisplayArgs(binary: string, vncDisplay: number): string[] | null {
   const result = spawnSync(binary, ['--display', 'help'], { stdio: 'pipe', encoding: 'utf8' });
   const output = (result.stdout ?? '') + (result.stderr ?? '');
   const backends = new Set(
@@ -197,7 +197,7 @@ function chooseDisplayArgs(binary: string, vncDisplay: number): string[] {
     }
   }
 
-  return ['-display', 'none'];
+  return null;
 }
 
 export function startVm(opts: StartVmOptions): boolean {
@@ -214,6 +214,21 @@ export function startVm(opts: StartVmOptions): boolean {
 
   if (gui) {
     const displayArgs = chooseDisplayArgs(binary, vncDisplay);
+    if (!displayArgs) {
+      console.error(
+        'Error: GUI mode requested but the bundled QEMU has no display backends (no gtk, sdl, or vnc).\n' +
+        'Install a full QEMU build with display support:\n' +
+        '  Windows:  choco install qemu  OR  https://qemu.org/download/#windows\n' +
+        '  Then set OPEN_COMPUTER_QEMU_DIR to the install path, or add it to your PATH.',
+      );
+      return false;
+    }
+    if (!daemonize) {
+      // Foreground: keep QEMU attached so the GUI window stays alive and
+      // errors are visible (used by `base install`).
+      spawnSync(binary, [...args, ...displayArgs], { stdio: 'inherit' });
+      return true;
+    }
     const child = spawn(binary, [...args, ...displayArgs], {
       stdio: 'ignore',
       detached: true,
