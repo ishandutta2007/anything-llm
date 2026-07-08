@@ -92,7 +92,10 @@ class OMLXLLM {
         })
         .then(({ data: models }) => {
           models.forEach((model) => {
-            if (!model?.max_model_len) return;
+            // A model can omit max_model_len - cache the 4096 fallback for it
+            // so it is not later mistaken for a large-context model.
+            if (!model?.max_model_len)
+              return (OMLXLLM.modelContextWindows[model.id] = 4096);
             OMLXLLM.modelContextWindows[model.id] = Number(model.max_model_len);
           });
         })
