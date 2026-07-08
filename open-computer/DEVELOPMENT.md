@@ -70,6 +70,22 @@ This will start the base image in a VM, provision it, shut it down, and compact 
 
 Now, you can use the `open-computer create/up agent --dev` command to start an agent in development mode. This will start the agent in a development mode where you can see the agent's UI and interact with it in real time.
 
+> **Windows only — post-install step:** Before provisioning, SSH into the base image
+> and remove passwords so that provisioning can run non-interactively:
+>
+> ```powershell
+> .\open-computer.cmd base ssh
+> ```
+>
+> Then inside the VM (enter root password when prompted by `su`):
+>
+> ```bash
+> echo "<root-password>" | su -c "passwd -d root; passwd -d agent; apt-get install -y sudo; echo 'agent ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/agent; chmod 440 /etc/sudoers.d/agent; sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config; sed -i 's/^#*PermitEmptyPasswords.*/PermitEmptyPasswords yes/' /etc/ssh/sshd_config; sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config; sed -i 's/pam_unix.so/pam_unix.so nullok/' /etc/pam.d/common-auth; sed -i 's/pam_unix.so/pam_unix.so nullok/' /etc/pam.d/sshd; systemctl restart sshd"
+> ```
+>
+> Exit the SSH session, then run `.\open-computer.cmd base provision`.
+> On macOS this step is not needed — the macOS CLI uses `expect` for password automation.
+
 ## Usage
 
 **macOS / Linux:**

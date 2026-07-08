@@ -8,7 +8,7 @@ $ProgressPreference = "SilentlyContinue"
 
 $ScriptDir    = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $ProjectDir   = Split-Path -Parent $ScriptDir
-$BaseImageDir = Join-Path $ProjectDir 'master' 'base_image'
+$BaseImageDir = Join-Path (Join-Path $ProjectDir 'master') 'base_image'
 
 # ── Detect arch ───────────────────────────────────────────────────────────────
 
