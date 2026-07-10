@@ -41,8 +41,6 @@ class OMLXProvider extends InheritMultiple([Provider, UnTooled]) {
     return true;
   }
 
-  // ---- UnTooled callbacks (used when native tool calling is not supported) ----
-
   async #handleFunctionCallChat({ messages = [] }) {
     return await this.client.chat.completions
       .create({
