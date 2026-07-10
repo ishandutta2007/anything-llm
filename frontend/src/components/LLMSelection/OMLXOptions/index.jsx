@@ -140,7 +140,7 @@ export default function OMLXOptions({ settings }) {
                     If you leave this field blank, the context window limit will
                     be auto-detected from the model and applied to all chats. If
                     auto-detection fails, a fallback context window limit of
-                    4096 will be used.
+                    16000 will be used.
                     <br /> <br />
                     <b>Important:</b> Some models have very large context
                     windows using the full context window limit can dramatically

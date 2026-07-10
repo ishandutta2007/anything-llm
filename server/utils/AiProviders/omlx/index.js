@@ -92,10 +92,10 @@ class OMLXLLM {
         })
         .then(({ data: models }) => {
           models.forEach((model) => {
-            // A model can omit max_model_len - cache the 4096 fallback for it
+            // A model can omit max_model_len - cache the 16k fallback for it
             // so it is not later mistaken for a large-context model.
             if (!model?.max_model_len)
-              return (OMLXLLM.modelContextWindows[model.id] = 4096);
+              return (OMLXLLM.modelContextWindows[model.id] = 16000);
             OMLXLLM.modelContextWindows[model.id] = Number(model.max_model_len);
           });
         })
@@ -132,7 +132,7 @@ class OMLXLLM {
       this.#slog(
         "No context windows cached - Context window may be inaccurately reported."
       );
-      return Number(process.env.OMLX_LLM_TOKEN_LIMIT) || 4096;
+      return Number(process.env.OMLX_LLM_TOKEN_LIMIT) || 16000;
     }
 
     let userDefinedLimit = null;
