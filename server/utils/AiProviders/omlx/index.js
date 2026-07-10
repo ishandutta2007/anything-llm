@@ -270,11 +270,12 @@ class OMLXLLM {
       func: this.omlx.chat.completions.create({
         model: this.model,
         stream: true,
+        stream_options: { include_usage: true },
         messages,
         temperature,
       }),
       messages,
-      runPromptTokenCalculation: true,
+      runPromptTokenCalculation: false,
       modelTag: this.model,
       provider: this.className,
     });
@@ -282,7 +283,12 @@ class OMLXLLM {
   }
 
   handleStream(response, stream, responseProps) {
-    return handleDefaultStreamResponseV2(response, stream, responseProps);
+    // OMLX follows the OpenAI spec for `stream_options: { include_usage: true }`
+    // and sends its usage chunk _after_ the finish_reason chunk, so we read
+    // the stream to completion to capture the real usage metrics.
+    return handleDefaultStreamResponseV2(response, stream, responseProps, {
+      breakOnFinishReason: false,
+    });
   }
 
   // Simple wrapper for dynamic embedder & normalize interface for all LLM implementations

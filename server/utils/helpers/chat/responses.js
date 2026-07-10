@@ -14,9 +14,21 @@ function clientAbortedHandler(resolve, fullText) {
  * @param {import("express").Response} response
  * @param {import('./LLMPerformanceMonitor').MonitoredStream} stream
  * @param {Object} responseProps
+ * @param {Object} [opts]
+ * @param {boolean} [opts.breakOnFinishReason=true] - Stop reading the stream as soon as
+ * a `finish_reason` chunk is seen. This is the safe default since some OpenAI-compatible
+ * backends do not reliably close the stream after the finish chunk. Providers that follow
+ * the OpenAI spec for `stream_options: { include_usage: true }` send their usage metrics
+ * in a trailing chunk _after_ `finish_reason` - those should pass `false` so the stream
+ * is read to completion and the real usage metrics are captured.
  * @returns {Promise<string>}
  */
-function handleDefaultStreamResponseV2(response, stream, responseProps) {
+function handleDefaultStreamResponseV2(
+  response,
+  stream,
+  responseProps,
+  { breakOnFinishReason = true } = {}
+) {
   const { uuid = uuidv4(), sources = [] } = responseProps;
 
   // Why are we doing this?
@@ -78,6 +90,11 @@ function handleDefaultStreamResponseV2(response, stream, responseProps) {
           // This is used to report the real-time duration of the completion.
           if (chunk.usage.hasOwnProperty("time_info")) {
             usage.duration = chunk.usage.time_info.completion_time;
+          }
+
+          // Others, like OMLX, report it as `total_time` in seconds.
+          if (chunk.usage.hasOwnProperty("total_time")) {
+            usage.duration = Number(chunk.usage.total_time);
           }
         }
 
@@ -153,12 +170,17 @@ function handleDefaultStreamResponseV2(response, stream, responseProps) {
             close: true,
             error: false,
           });
-          response.removeListener("close", handleAbort);
-          stream?.endMeasurement(usage);
-          resolve(fullText);
-          break; // Break streaming when a valid finish_reason is first encountered
+
+          // Break streaming when a valid finish_reason is first encountered
+          // unless the provider opted to read the stream to completion because
+          // its usage chunk follows the finish_reason chunk.
+          if (breakOnFinishReason) break;
         }
       }
+
+      response.removeListener("close", handleAbort);
+      stream?.endMeasurement(usage);
+      resolve(fullText);
     } catch (e) {
       console.log(`\x1b[43m\x1b[34m[STREAMING ERROR]\x1b[0m ${e.message}`);
       writeResponseChunk(response, {
