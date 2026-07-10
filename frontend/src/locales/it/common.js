@@ -62,7 +62,7 @@ const TRANSLATIONS = {
     no: "No.",
     search: "Cerca",
     username_requirements:
-      "Il nome utente deve essere compreso tra 2 e 32 caratteri, iniziare con una lettera minuscola e contenere solo lettere minuscole, numeri, trattini bassi, trattini e punti.",
+      "Il nome utente deve essere compreso tra 2 e 64 caratteri, iniziare con una lettera minuscola e contenere solo lettere minuscole, numeri, trattini bassi, trattini e punti.",
     on: "Su",
     none: "Nessuno",
     stopped: "Arrestato",
@@ -765,7 +765,6 @@ const TRANSLATIONS = {
       },
       "intelligent-skill-selection": {
         title: "Selezione intelligente delle competenze",
-        "beta-badge": "Versione beta",
         description:
           "Abilita l'uso illimitato degli strumenti e riduci l'utilizzo dei token fino all'80% per ogni query — AnythingLLM seleziona automaticamente le competenze più appropriate per ogni richiesta.",
         "max-tools": {

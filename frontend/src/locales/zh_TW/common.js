@@ -58,7 +58,7 @@ const TRANSLATIONS = {
     no: "否",
     search: "搜尋",
     username_requirements:
-      "使用者名稱必須為 2-32 個字元，以小寫字母開頭，且只能包含小寫字母、數字、底線、連字號和句點。",
+      "使用者名稱必須為64 個字元，以小寫字母開頭，且只能包含小寫字母、數字、底線、連字號和句點。",
     on: "關於",
     none: "沒有",
     stopped: "停止",
@@ -698,7 +698,6 @@ const TRANSLATIONS = {
       },
       "intelligent-skill-selection": {
         title: "智能技能選擇",
-        "beta-badge": "β 版本",
         description:
           "啟用無限多個工具，並將每個查詢的 token 使用量最多降低 80% — AnythingLLM 能夠自動選擇最適合的技能，以處理每一個提示。",
         "max-tools": {

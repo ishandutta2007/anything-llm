@@ -25,6 +25,7 @@ import FileSystemImage from "@/media/agents/file-system.png";
 import GMailIcon from "./GMailSkillPanel/gmail.png";
 import OutlookIcon from "./OutlookSkillPanel/outlook.png";
 import GoogleCalendarIcon from "./GoogleCalendarSkillPanel/google-calendar.png";
+import ScheduledJobsImage from "@/media/agents/scheduled-jobs.png";
 
 export const getDefaultSkills = (t) => ({
   "rag-memory": {
@@ -53,6 +54,14 @@ export const getDefaultSkills = (t) => ({
   },
 });
 
+/**
+ * Get the configurable skills for the agent.
+ * @param {function} t - The translation function.
+ * @param {object} options - The options for the configurable skills.
+ * @param {boolean} options.fileSystemAgentAvailable - Whether the file system agent is available.
+ * @param {boolean} options.createFilesAgentAvailable - Whether the create files agent is available.
+ * @returns {object} The configurable skills.
+ */
 export const getConfigurableSkills = (
   t,
   { fileSystemAgentAvailable = true, createFilesAgentAvailable = true } = {}
@@ -103,7 +112,7 @@ export const getConfigurableSkills = (
     component: GenericSkillPanel,
     skill: "create-scheduled-job",
     icon: CalendarCheck,
-    // Scheduled Jobs is single-user-mode only, so hide this skill in MUM.
+    image: ScheduledJobsImage,
     mode: ["singleUserOnly"],
   },
 });

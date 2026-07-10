@@ -12,7 +12,7 @@ const { USER_AGENT, WORKSPACE_AGENT } = require("./defaults");
 const ImportedPlugin = require("./imported");
 const { AgentFlows } = require("../agentFlows");
 const MCPCompatibilityLayer = require("../MCP");
-const { getAndClearInvocationContext } = require("../chats/agents");
+const { getAndClearInvocationAttachments } = require("../chats/agents");
 const { DocumentManager } = require("../DocumentManager");
 
 class AgentHandler {
@@ -24,7 +24,6 @@ class AgentHandler {
   provider = null;
   model = null;
   attachments = [];
-  timezone = null;
 
   constructor({ uuid }) {
     this.#invocationUUID = uuid;
@@ -292,9 +291,9 @@ class AgentHandler {
   providerDefault(provider = this.provider) {
     switch (provider) {
       case "openai":
-        return process.env.OPEN_MODEL_PREF ?? "gpt-4o";
+        return process.env.OPEN_MODEL_PREF ?? "gpt-4.1-nano";
       case "anthropic":
-        return process.env.ANTHROPIC_MODEL_PREF ?? "claude-3-sonnet-20240229";
+        return process.env.ANTHROPIC_MODEL_PREF ?? "claude-sonnet-4-6";
       case "lmstudio":
         return process.env.LMSTUDIO_MODEL_PREF ?? null;
       case "ollama":
@@ -704,13 +703,8 @@ class AgentHandler {
     await this.#validInvocation();
     await this.#providerSetupAndCheck();
 
-    // Retrieve cached per-invocation context (attachments, timezone) that the
-    // browser sent over the HTTP /stream-chat request before this websocket.
-    const { attachments, timezone } = getAndClearInvocationContext(
-      this.#invocationUUID
-    );
-    this.attachments = attachments;
-    this.timezone = timezone;
+    // Retrieve cached attachments (images, etc.) from the HTTP request
+    this.attachments = getAndClearInvocationAttachments(this.#invocationUUID);
 
     return this;
   }
@@ -789,13 +783,12 @@ class AgentHandler {
   ) {
     this.aibitat = new AIbitat({
       provider: this.provider ?? "openai",
-      model: this.model ?? "gpt-4o",
+      model: this.model ?? "gpt-4.1-nano",
       chats: await this.#chatHistory(20),
       handlerProps: {
         invocation: this.invocation,
         log: this.log,
         routingMetadata: this.routingMetadata || null,
-        timezone: this.timezone || "UTC",
       },
     });
 

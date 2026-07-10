@@ -62,7 +62,7 @@ const TRANSLATIONS = {
     no: "Nej",
     search: "Søg",
     username_requirements:
-      "Brugernavnet skal bestå af 2-32 tegn, starte med et lille bogstav, og kun indeholde små bogstaver, tal, understregninger, bindestreger og punktummer.",
+      "Brugernavnet skal bestå af 2-64 tegn, starte med et lille bogstav, og kun indeholde små bogstaver, tal, understregninger, bindestreger og punktummer.",
     on: "Om",
     none: "Ingen",
     stopped: "Stoppet",
@@ -742,7 +742,6 @@ const TRANSLATIONS = {
       },
       "intelligent-skill-selection": {
         title: "Intelligent valg af færdigheder",
-        "beta-badge": "Beta",
         description:
           "Aktiver ubegrænsede værktøjer og reducer brugen af cut-tokens med op til 80 % pr. forespørgsel – AnythingLLM vælger automatisk de relevante færdigheder til hver forespørgsel.",
         "max-tools": {
