@@ -305,6 +305,45 @@ class OMLXLLM {
     const messageArray = this.constructPrompt(promptArgs);
     return await messageArrayCompressor(this, messageArray, rawHistory);
   }
+
+  async getModelCapabilities() {
+    const capabilities = {
+      reasoning: false,
+      tools: true,
+      vision: false,
+      imageGeneration: false,
+    };
+    try {
+      // oMLX currently does not implement a /v1/models/{model_id} endpoint.
+      // As of now, this endpoint offers the richest metadata for models on
+      // the server
+      const { models = [] } = await this.omlx.get("/models/status");
+
+      const modelData = models.find((m) => m.id === this.model);
+
+      if (!modelData) {
+        throw new Error(
+          `Model capabilities for ${this.model} could not be retrieved`
+        );
+      }
+
+      // thinking_default is currently the best flag for identifying a
+      // reasoning model. All this boolean means is "Does this model reason by
+      // default or do I have to prompt it to reason?". But the field will either be
+      // undefined or null for non-reasonig models.
+      capabilities.reasoning =
+        modelData.thinking_default !== null &&
+        modelData.thinking_default !== undefined;
+      capabilities.vision = modelData.model_type === "vlm";
+
+      // Curently cannot be determined
+      capabilities.imageGeneration = false;
+    } catch (e) {
+      this.#log(e.message);
+    }
+
+    return capabilities;
+  }
 }
 
 /**
