@@ -62,7 +62,7 @@ const TRANSLATIONS = {
     no: "Nee",
     search: "Zoeken",
     username_requirements:
-      "De gebruikersnaam moet 2-32 tekens bevatten, beginnen met een kleine letter en mag alleen kleine letters, cijfers, underscores, koppeltekens en punten bevatten.",
+      "De gebruikersnaam moet 2-64 tekens bevatten, beginnen met een kleine letter en mag alleen kleine letters, cijfers, underscores, koppeltekens en punten bevatten.",
     on: "Over",
     none: "Geen",
     stopped: "Gestopt",
@@ -716,6 +716,11 @@ const TRANSLATIONS = {
           },
         },
       },
+      scheduledJob: {
+        title: "Maak geplande taken aan",
+        description:
+          'Laat de agent herhaalde geplande taken aanmaken vanuit het gesprek (bijvoorbeeld: "elke werkdag om 9 uur, vat mijn inbox samen en stuur me een e-mail"). Dit is alleen beschikbaar in single-user modus.',
+      },
     },
     mcp: {
       title: "MCP-servers",
@@ -746,7 +751,6 @@ const TRANSLATIONS = {
       },
       "intelligent-skill-selection": {
         title: "Intelligente selectie van vaardigheden",
-        "beta-badge": "Betaling",
         description:
           'Maak gebruik van een onbeperkt aantal tools en verminder het gebruik van "cut tokens" met tot wel 80% per query – AnythingLLM selecteert automatisch de juiste vaardigheden voor elke vraag.',
         "max-tools": {

@@ -61,7 +61,7 @@ const TRANSLATIONS = {
     no: "Non",
     search: "Rechercher",
     username_requirements:
-      "Le nom d'utilisateur doit comporter entre 2 et 32 caractères, commencer par une lettre minuscule et ne contenir que des lettres minuscules, des chiffres, des tirets bas, des tirets et des points.",
+      "Le nom d'utilisateur doit comporter entre 2 et 64 caractères, commencer par une lettre minuscule et ne contenir que des lettres minuscules, des chiffres, des tirets bas, des tirets et des points.",
     on: "Sur",
     none: "Aucun",
     stopped: "Arrêté",
@@ -731,6 +731,11 @@ const TRANSLATIONS = {
           },
         },
       },
+      scheduledJob: {
+        title: "Créer des tâches planifiées",
+        description:
+          "Permettez à l'agent de créer des tâches planifiées récurrentes à partir des conversations (par exemple : « tous les jours ouvrables à 9h, résumez ma boîte de réception et envoyez-moi un e-mail »). Fonctionnalité disponible uniquement en mode utilisateur unique.",
+      },
     },
     mcp: {
       title: "Serveurs MCP",
@@ -762,7 +767,6 @@ const TRANSLATIONS = {
       },
       "intelligent-skill-selection": {
         title: "Sélection de compétences basée sur l'intelligence",
-        "beta-badge": "Bêta",
         description:
           "Permettez l'utilisation illimitée d'outils et réduisez la consommation de jetons jusqu'à 80 % par requête – AnythingLLM sélectionne automatiquement les compétences appropriées pour chaque requête.",
         "max-tools": {

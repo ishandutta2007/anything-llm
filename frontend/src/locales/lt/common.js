@@ -64,7 +64,7 @@ const TRANSLATIONS = {
     stopped: "Sustabdyta",
     search: "Paieška",
     username_requirements:
-      "Vartotojo vardą turi sudaryti 2–32 simboliai, jis turi prasidėti mažąja raide ir susidėti tik iš mažųjų raidžių, skaičių, pabraukimo brūkšnių, brūkšnelių ir taškų.",
+      "Vartotojo vardą turi sudaryti 2–64 simboliai, jis turi prasidėti mažąja raide ir susidėti tik iš mažųjų raidžių, skaičių, pabraukimo brūkšnių, brūkšnelių ir taškų.",
     loading: "Kraunama",
     refresh: "Atnaujinti",
   },
@@ -725,6 +725,11 @@ const TRANSLATIONS = {
           },
         },
       },
+      scheduledJob: {
+        title: "Sukurkite nurodytus užduotis",
+        description:
+          "Leiskite agentui kurti nuolatinės užduotės iš pokalbio (pvz., „kasdien, 9 val., peržiūrėkite mano pašto dėžę ir siųskite man el. laišką“). Šis funkcijomis galima naudotis tik vieno vartotojo režimu.",
+      },
     },
     mcp: {
       title: "MCP serveriai",
@@ -755,7 +760,6 @@ const TRANSLATIONS = {
       },
       "intelligent-skill-selection": {
         title: "Išmanusis įgūdžių pasirinkimas",
-        "beta-badge": "Beta",
         description:
           "Įjunkite neribotą kiekį įrankių ir sumažinkite žetonų (tokens) naudojimą iki 80 % vienai užklausai — AnythingLLM automatiškai parinks tinkamus įgūdžiai kiekvienai užklausai.",
         "max-tools": {

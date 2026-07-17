@@ -58,7 +58,7 @@ const TRANSLATIONS = {
     no: "否",
     search: "搜尋",
     username_requirements:
-      "使用者名稱必須為 2-32 個字元，以小寫字母開頭，且只能包含小寫字母、數字、底線、連字號和句點。",
+      "使用者名稱必須為64 個字元，以小寫字母開頭，且只能包含小寫字母、數字、底線、連字號和句點。",
     on: "關於",
     none: "沒有",
     stopped: "停止",
@@ -664,6 +664,11 @@ const TRANSLATIONS = {
           },
         },
       },
+      scheduledJob: {
+        title: "建立排程工作",
+        description:
+          "允許經理根據聊天內容，設定重複執行的工作（例如：「每天早上9點，請自動整理我的收件匣並將摘要發送至我的電子郵件」）。僅適用於單一使用者模式。",
+      },
     },
     mcp: {
       title: "MCP 伺服器",
@@ -693,7 +698,6 @@ const TRANSLATIONS = {
       },
       "intelligent-skill-selection": {
         title: "智能技能選擇",
-        "beta-badge": "β 版本",
         description:
           "啟用無限多個工具，並將每個查詢的 token 使用量最多降低 80% — AnythingLLM 能夠自動選擇最適合的技能，以處理每一個提示。",
         "max-tools": {

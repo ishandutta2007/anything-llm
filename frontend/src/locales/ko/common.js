@@ -60,7 +60,7 @@ const TRANSLATIONS = {
     no: "아니오",
     search: "검색",
     username_requirements:
-      "사용자 이름은 2-32자여야 하고, 소문자로 시작해야 하며, 소문자, 숫자, 밑줄, 하이픈, 마침표만 포함할 수 있습니다.",
+      "사용자 이름은 2-64자여야 하고, 소문자로 시작해야 하며, 소문자, 숫자, 밑줄, 하이픈, 마침표만 포함할 수 있습니다.",
     on: "~에 대해",
     none: "없음",
     stopped: "멈춤",
@@ -695,6 +695,11 @@ const TRANSLATIONS = {
           },
         },
       },
+      scheduledJob: {
+        title: "일정 기반 작업 생성",
+        description:
+          '대행자가 채팅을 통해 반복적인 예약 작업을 생성할 수 있도록 합니다(예: "매주 평일 오전 9시에 받은 이메일을 요약하여 제 이메일 주소로 보내기"). 단독 사용자 모드에서만 사용 가능합니다.',
+      },
     },
     mcp: {
       title: "MCP 서버",
@@ -725,7 +730,6 @@ const TRANSLATIONS = {
       },
       "intelligent-skill-selection": {
         title: "지능형 기술 선택",
-        "beta-badge": "베타",
         description:
           "쿼리당 무제한의 도구 사용 및 컷 토큰 사용량을 최대 80%까지 줄일 수 있습니다 – AnythingLLM은 모든 프롬프트에 적합한 기술을 자동으로 선택합니다.",
         "max-tools": {

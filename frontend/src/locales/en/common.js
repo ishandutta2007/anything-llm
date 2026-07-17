@@ -63,7 +63,7 @@ const TRANSLATIONS = {
     stopped: "Stopped",
     search: "Search",
     username_requirements:
-      "Username must be 2-32 characters, start with a lowercase letter, and only contain lowercase letters, numbers, underscores, hyphens, and periods.",
+      "Username must be 2-64 characters, start with a lowercase letter, and only contain lowercase letters, numbers, underscores, hyphens, and periods.",
     loading: "Loading",
     refresh: "Refresh",
   },
@@ -328,6 +328,11 @@ const TRANSLATIONS = {
         title: "SQL Connector",
         description:
           "Enable your agent to be able to leverage SQL to answer you questions by connecting to various SQL database providers.",
+      },
+      scheduledJob: {
+        title: "Create scheduled jobs",
+        description:
+          'Allow the agent to create recurring Scheduled Jobs from chat (e.g. "every weekday at 9am summarize my inbox and email me"). Available in single-user mode only.',
       },
       filesystem: {
         title: "File System Access",
@@ -742,7 +747,6 @@ const TRANSLATIONS = {
       },
       "intelligent-skill-selection": {
         title: "Intelligent Skill Selection",
-        "beta-badge": "Beta",
         description:
           "Enable unlimited tools and cut token usage by up to 80% per query — AnythingLLM automatically selects the right skills for every prompt.",
         "max-tools": {

@@ -274,6 +274,10 @@ class AgentHandler {
         if (!process.env.LEMONADE_LLM_BASE_PATH)
           throw new Error("Lemonade base path must be provided to use agents.");
         break;
+      case "omlx":
+        if (!process.env.OMLX_LLM_BASE_PATH)
+          throw new Error("OMLX base path must be provided to use agents.");
+        break;
       case "minimax":
         if (!process.env.MINIMAX_API_KEY)
           throw new Error("Minimax API key must be provided to use agents.");
@@ -298,9 +302,9 @@ class AgentHandler {
   providerDefault(provider = this.provider) {
     switch (provider) {
       case "openai":
-        return process.env.OPEN_MODEL_PREF ?? "gpt-4o";
+        return process.env.OPEN_MODEL_PREF ?? "gpt-4.1-nano";
       case "anthropic":
-        return process.env.ANTHROPIC_MODEL_PREF ?? "claude-3-sonnet-20240229";
+        return process.env.ANTHROPIC_MODEL_PREF ?? "claude-sonnet-4-6";
       case "lmstudio":
         return process.env.LMSTUDIO_MODEL_PREF ?? null;
       case "ollama":
@@ -370,6 +374,8 @@ class AgentHandler {
         return process.env.SAMBANOVA_LLM_MODEL_PREF ?? null;
       case "lemonade":
         return process.env.LEMONADE_LLM_MODEL_PREF ?? null;
+      case "omlx":
+        return process.env.OMLX_LLM_MODEL_PREF ?? null;
       case "minimax":
         return process.env.MINIMAX_MODEL_PREF ?? "MiniMax-M2.7";
       case "cerebras":
@@ -829,7 +835,7 @@ class AgentHandler {
     this.#args = args;
     this.aibitat = new AIbitat({
       provider: this.provider ?? "openai",
-      model: this.model ?? "gpt-4o",
+      model: this.model ?? "gpt-4.1-nano",
       chats: await this.#chatHistory(20),
       handlerProps: {
         invocation: this.invocation,
