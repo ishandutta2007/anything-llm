@@ -162,7 +162,7 @@ class OMLXLLM {
 
   static maxContextWindow(modelName = null) {
     if (Object.keys(OMLXLLM.modelContextWindows).length === 0 || !modelName)
-      return 4096;
+      return 16384;
     return Number(OMLXLLM.modelContextWindows[modelName]) || 16384;
   }
 
@@ -283,12 +283,7 @@ class OMLXLLM {
   }
 
   handleStream(response, stream, responseProps) {
-    // OMLX follows the OpenAI spec for `stream_options: { include_usage: true }`
-    // and sends its usage chunk _after_ the finish_reason chunk, so we read
-    // the stream to completion to capture the real usage metrics.
-    return handleDefaultStreamResponseV2(response, stream, responseProps, {
-      breakOnFinishReason: false,
-    });
+    return handleDefaultStreamResponseV2(response, stream, responseProps);
   }
 
   // Simple wrapper for dynamic embedder & normalize interface for all LLM implementations
